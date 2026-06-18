@@ -1,0 +1,139 @@
+/* ============================================
+   COMPACT LAYOUT FIX
+   Player visible without scrolling
+   ============================================ */
+
+/* Reduce hero section height */
+.hero {
+  padding: 24px 0 16px !important;
+  gap: 24px !important;
+}
+
+/* Smaller heading */
+.hero h1 {
+  font-size: clamp(28px, 4vw, 42px) !important;
+  line-height: 1.1 !important;
+  margin: 8px 0 0 !important;
+}
+
+/* Compact hero text */
+.hero-lede {
+  margin: 10px 0 0 !important;
+  font-size: 13px !important;
+  max-width: 500px !important;
+}
+
+/* Hide overline on desktop */
+.overline {
+  display: none;
+}
+
+/* Smaller hero stats */
+.hero-stats {
+  gap: 6px !important;
+}
+
+.hero-stats div {
+  min-width: 100px !important;
+  padding: 12px !important;
+}
+
+.hero-stats strong {
+  font-size: 18px !important;
+}
+
+.hero-stats span {
+  font-size: 9px !important;
+}
+
+/* Compact header */
+.site-header {
+  height: 64px !important;
+  padding: 0 24px !important;
+}
+
+.brand-mark {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.brand-name {
+  font-size: 16px !important;
+}
+
+/* Reduce empty state height */
+.empty-state {
+  min-height: 420px !important;
+  padding: 28px !important;
+}
+
+/* Smaller upload icon */
+.upload-icon {
+  width: 72px !important;
+  height: 72px !important;
+  margin-bottom: 18px !important;
+}
+
+.upload-icon svg {
+  width: 32px !important;
+}
+
+/* Compact empty state text */
+.empty-state h2 {
+  font-size: clamp(20px, 3vw, 32px) !important;
+  margin: 0 !important;
+}
+
+.empty-state > p {
+  font-size: 12px !important;
+  margin: 10px 0 0 !important;
+  max-width: 450px !important;
+}
+
+/* Compact workspace */
+.workspace {
+  gap: 14px !important;
+}
+
+/* Smaller queue */
+.queue-card {
+  height: 420px !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .hero {
+    padding: 20px 3px 16px !important;
+  }
+  
+  .hero h1 {
+    font-size: clamp(24px, 8vw, 36px) !important;
+  }
+  
+  .hero-stats {
+    display: none;
+  }
+  
+  .empty-state {
+    min-height: 360px !important;
+    padding: 20px 16px !important;
+  }
+  
+  .queue-card {
+    height: 280px !important;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px !important;
+  }
+  
+  .hero-stats {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
