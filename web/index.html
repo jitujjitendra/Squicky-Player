@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="./enhanced-controls.css">
     <link rel="stylesheet" href="./mobile-enhancements.css">
     <link rel="stylesheet" href="./compact-layout.css">
+    <link rel="stylesheet" href="./phase2-styles/quality-ui.css">
+    <link rel="stylesheet" href="./phase2-styles/media-info-panel.css">
+    <link rel="stylesheet" href="./phase2-styles/playlist-ui.css">
+    <link rel="stylesheet" href="./phase2-styles/subtitle-styles.css">
+    <link rel="stylesheet" href="./phase2-styles/timeline-ui.css">
+    <link rel="stylesheet" href="./phase2-styles/advanced-controls.css">
+    <link rel="stylesheet" href="./phase2-styles/stats-dashboard.css">
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -26,6 +33,8 @@
       <nav class="header-actions" aria-label="Product links">
         <span class="privacy-chip"><i></i> Zero-upload mode</span>
         <a href="#capabilities">Device report</a>
+        <button id="playlistToggle" class="header-btn" type="button" title="Playlist">Playlist</button>
+        <button id="analyticsToggle" class="header-btn" type="button" title="Statistics">Stats</button>
       </nav>
     </header>
 
@@ -37,9 +46,9 @@
           <p class="hero-lede">Local files, modern streams and adaptive playback in one cinematic interface. Your private media stays on your device.</p>
         </div>
         <div class="hero-stats" aria-label="Core player features">
-          <div><strong>3</strong><span>Playback engines</span></div>
+          <div><strong>8</strong><span>Quality levels</span></div>
           <div><strong>0 B</strong><span>Uploaded</span></div>
-          <div><strong>ABR+</strong><span>Audio and previews</span></div>
+          <div><strong>20+</strong><span>Advanced features</span></div>
         </div>
       </section>
 
@@ -60,7 +69,7 @@
               </button>
               <button id="urlButton" class="button ghost" type="button">Open stream URL</button>
             </div>
-            <div class="format-row"><span>MP4</span><span>WEBM</span><span>MP3</span><span>HLS</span><span>DASH</span></div>
+            <div class="format-row"><span>MP4</span><span>WEBM</span><span>MKV</span><span>MP3</span><span>FLAC</span><span>HLS</span><span>DASH</span><span>AVI</span></div>
           </div>
 
           <squicky-player id="player" class="is-hidden"></squicky-player>
@@ -77,6 +86,18 @@
               <button id="subtitleButton" type="button" title="Load SRT or VTT subtitles" disabled>
                 <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Zm3 7h4m2 0h4M7 15h2m2 0h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></svg>
                 Add subtitles
+              </button>
+              <button id="mediaInfoButton" type="button" title="Media information">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>
+                Media Info
+              </button>
+              <button id="filtersButton" type="button" title="Video filters">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/></svg>
+                Filters
+              </button>
+              <button id="advancedControlsButton" type="button" title="Advanced controls">
+                <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" fill="currentColor"/></svg>
+                Controls
               </button>
               <button id="addMediaButton" type="button" title="Add media">
                 <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
@@ -133,6 +154,18 @@
     <script src="./theme-switcher.js"></script>
     <script src="./enhanced-controls.js"></script>
     <script src="./optimized-playback.js"></script>
+    <!-- Phase 2 Modules -->
+    <script src="./phase2/format-detector.js"></script>
+    <script src="./phase2/quality-manager.js"></script>
+    <script src="./phase2/media-info-panel.js"></script>
+    <script src="./phase2/playlist-manager.js"></script>
+    <script src="./phase2/subtitle-manager.js"></script>
+    <script src="./phase2/timeline-enhancements.js"></script>
+    <script src="./phase2/performance.js"></script>
+    <script src="./phase2/advanced-controls.js"></script>
+    <script src="./phase2/video-filters.js"></script>
+    <script src="./phase2/analytics.js"></script>
+    <script src="./phase2/phase2-bootstrap.js"></script>
 
     <dialog id="urlDialog">
       <form id="urlForm" method="dialog">
