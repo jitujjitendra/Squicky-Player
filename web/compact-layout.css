@@ -9,11 +9,15 @@
   gap: 24px !important;
 }
 
-/* Smaller heading */
+/* Single line heading */
 .hero h1 {
   font-size: clamp(28px, 4vw, 42px) !important;
   line-height: 1.1 !important;
   margin: 8px 0 0 !important;
+}
+
+.hero h1 br {
+  display: none !important;
 }
 
 /* Compact hero text */
