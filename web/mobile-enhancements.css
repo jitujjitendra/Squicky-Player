@@ -1,0 +1,439 @@
+/* ============================================
+   MOBILE RESPONSIVENESS ENHANCEMENTS
+   Better touch controls and responsive layout
+   ============================================ */
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  .control-button {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  
+  .play-button {
+    min-width: 56px;
+    min-height: 56px;
+  }
+  
+  /* Improved spacing */
+  .quick-actions {
+    gap: 10px;
+  }
+  
+  .quick-actions button {
+    min-height: 42px;
+    padding: 0 14px;
+  }
+  
+  /* Better readable text */
+  .hero h1 {
+    font-size: clamp(32px, 10vw, 48px);
+    line-height: 1.1;
+  }
+  
+  .hero-lede {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  /* Simplified header on mobile */
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .brand-name {
+    font-size: 16px;
+  }
+  
+  /* Stack theme controls vertically on very small screens */
+  @media (max-width: 480px) {
+    .theme-controls {
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .theme-switcher,
+    .mode-toggle {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  
+  /* Mobile-optimized empty state */
+  .empty-state {
+    min-height: 420px;
+    padding: 24px 16px;
+  }
+  
+  .upload-icon {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 20px;
+  }
+  
+  .upload-icon svg {
+    width: 32px;
+  }
+  
+  .empty-state h2 {
+    font-size: 24px;
+  }
+  
+  .empty-state > p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  
+  /* Full-width buttons on mobile */
+  .empty-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .empty-actions .button {
+    width: 100%;
+    min-height: 48px;
+  }
+  
+  /* Mobile timeline */
+  .timeline {
+    height: 6px;
+  }
+  
+  .timeline:active {
+    height: 10px;
+  }
+  
+  .timeline-thumb {
+    width: 16px;
+    height: 16px;
+    right: -8px;
+  }
+  
+  /* Mobile queue adjustments */
+  .queue-card {
+    height: 280px;
+  }
+  
+  .queue-item {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .queue-icon {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Hide timeline preview on mobile (too small) */
+  .timeline-preview {
+    display: none;
+  }
+  
+  /* Simplified speed/quality menus on mobile */
+  .speed-menu,
+  .quality-menu {
+    left: auto;
+    right: 0;
+    transform: none;
+    min-width: 140px;
+  }
+  
+  .speed-menu.open,
+  .quality-menu.open {
+    transform: translateY(-4px);
+  }
+  
+  /* Volume always visible on mobile */
+  .volume-slider-container {
+    width: 60px;
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE OPTIMIZATIONS
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Compact header in landscape */
+  .site-header {
+    height: 56px;
+  }
+  
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .alpha {
+    display: none;
+  }
+  
+  /* Hide hero section in landscape when playing */
+  body.playing .hero {
+    display: none;
+  }
+  
+  /* Full-width player in landscape */
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  
+  .queue-card {
+    display: none;
+  }
+  
+  /* Compact controls */
+  .under-player {
+    padding: 8px 2px 0;
+  }
+  
+  .quick-actions button {
+    min-height: 36px;
+    font-size: 9px;
+  }
+}
+
+/* ============================================
+   TABLET OPTIMIZATIONS
+   ============================================ */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Two-column capability grid on tablets */
+  .capability-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  /* Adjusted workspace for tablets */
+  .workspace {
+    grid-template-columns: 1.5fr 1fr;
+    gap: 16px;
+  }
+  
+  .queue-card {
+    height: 480px;
+  }
+}
+
+/* ============================================
+   TOUCH GESTURE SUPPORT
+   ============================================ */
+
+/* Disable double-tap zoom on player */
+squicky-player,
+.empty-state,
+.control-button,
+.timeline {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth touch scrolling */
+.queue-list,
+.quality-menu,
+.speed-menu {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent text selection on controls */
+.control-button,
+.quick-actions button,
+.button,
+.theme-switcher,
+.mode-toggle {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ============================================
+   MOBILE SAFE AREAS (iPhone notch, etc.)
+   ============================================ */
+@supports (padding: env(safe-area-inset-left)) {
+  .site-header {
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
+  }
+  
+  main,
+  footer {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  @media (orientation: landscape) {
+    .workspace {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
+/* ============================================
+   REDUCED MOTION PREFERENCE
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .timeline-thumb,
+  .volume-slider-thumb {
+    transition: none;
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+@media (prefers-contrast: high) {
+  .control-button {
+    border-width: 2px;
+  }
+  
+  .timeline {
+    height: 8px;
+  }
+  
+  .brand-mark {
+    border-width: 2px;
+  }
+  
+  .button {
+    border-width: 2px;
+  }
+}
+
+/* ============================================
+   DARK MODE PREFERENCE (System)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  /* Already handled by theme system, but add fallbacks */
+  :root:not([data-mode]) {
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-mode]) {
+    color-scheme: light;
+  }
+}
+
+/* ============================================
+   MOBILE-SPECIFIC INTERACTIONS
+   ============================================ */
+
+/* Swipe indicators */
+.swipe-indicator {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 9999;
+}
+
+.swipe-indicator.show {
+  opacity: 1;
+}
+
+.swipe-indicator.left {
+  left: 20px;
+}
+
+.swipe-indicator.right {
+  right: 20px;
+}
+
+/* Mobile fullscreen improvements */
+@media (max-width: 768px) {
+  /* Hide browser UI in fullscreen */
+  :-webkit-full-screen squicky-player {
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  :fullscreen squicky-player {
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  /* Prevent body scroll when player is active */
+  body.player-active {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* ============================================
+   MOBILE KEYBOARD OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 768px) {
+  /* Adjust layout when keyboard is visible */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS specific */
+    input:focus,
+    textarea:focus {
+      font-size: 16px; /* Prevent zoom on focus */
+    }
+  }
+}
+
+/* ============================================
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 768px) {
+  /* Simplify animations on mobile */
+  .empty-glow {
+    filter: blur(50px); /* Less blur for better performance */
+  }
+  
+  .noise {
+    opacity: 0.02; /* Lighter noise pattern */
+  }
+  
+  /* Simpler gradients */
+  body {
+    background: var(--bg-primary);
+  }
+  
+  /* Disable hover effects on touch devices */
+  @media (hover: none) {
+    .control-button:hover,
+    .button:hover,
+    .queue-item:hover {
+      transform: none;
+      background: var(--control-bg);
+    }
+  }
+}
+
+/* ============================================
+   FOLD DEVICES (Samsung Fold, etc.)
+   ============================================ */
+@media (min-width: 280px) and (max-width: 653px) {
+  /* Optimizations for narrow screens */
+  .hero-stats {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .hero-stats::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .format-row {
+    flex-wrap: wrap;
+  }
+}

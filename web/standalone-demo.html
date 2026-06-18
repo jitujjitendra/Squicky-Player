@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" data-theme="original" data-mode="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squicky Player - Standalone Demo</title>
+  
+  <!-- Inline all CSS for standalone operation -->
+  <link rel="stylesheet" href="./assets/index-JU5YNuC8.css">
+  <link rel="stylesheet" href="./themes.css">
+  <link rel="stylesheet" href="./enhanced-controls.css">
+  <link rel="stylesheet" href="./mobile-enhancements.css">
+  
+  <style>
+    /* Ensure proper initialization */
+    html {
+      background: var(--bg-primary, #070708);
+    }
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  
+  <header class="site-header">
+    <a class="brand" href="#">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 0 3 5m3-5 3 5m5 0H3m6 4 6 3-6 3v-6Z"/></svg>
+      </span>
+      <span class="brand-name">Squicky <strong>Player</strong></span>
+      <span class="alpha">PHASE 1</span>
+    </a>
+    <nav class="header-actions">
+      <span class="privacy-chip"><i></i> Zero-upload mode</span>
+      <a href="test-demo.html">Test Demo</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="overline">Universal media, beautifully private</p>
+        <h1>Your screen deserves<br><em>a better player.</em></h1>
+        <p class="hero-lede">Local files, modern streams and adaptive playback. Your private media stays on your device. Phase 1 with 4 themes, enhanced controls, and keyboard shortcuts!</p>
+      </div>
+      <div class="hero-stats">
+        <div><strong>4</strong><span>Themes × 2 Modes</span></div>
+        <div><strong>0 B</strong><span>Uploaded</span></div>
+        <div><strong>12+</strong><span>Keyboard Shortcuts</span></div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="stage-column">
+        <div id="emptyState" class="empty-state">
+          <div class="empty-glow"></div>
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></svg>
+          </div>
+          <p class="empty-kicker">Private by design</p>
+          <h2>Drop a video or audio file</h2>
+          <p>Nothing leaves this browser. Phase 1 features: 4 themes, enhanced controls, and more!</p>
+          <div class="empty-actions">
+            <button id="browseButton" class="button primary" type="button">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+              Browse media
+            </button>
+            <button id="demoThemes" class="button ghost" type="button">Try Themes</button>
+          </div>
+          <div class="format-row">
+            <span style="color: var(--success)">MP4</span>
+            <span style="color: var(--success)">WEBM</span>
+            <span style="color: var(--success)">MP3</span>
+            <span style="color: var(--success)">HLS</span>
+            <span style="color: var(--success)">DASH</span>
+            <span style="color: var(--warning)">MKV</span>
+          </div>
+        </div>
+
+        <div id="playerContainer" style="display:none; background: #000; border-radius: 24px; overflow: hidden; aspect-ratio: 16/9;">
+          <video id="mainPlayer" controls style="width: 100%; height: 100%;"></video>
+        </div>
+
+        <div class="under-player">
+          <div class="now-playing">
+            <span class="pulse"></span>
+            <div>
+              <small id="sourceMode">PHASE 1 READY</small>
+              <strong id="nowPlaying">All features loaded! Try themes →</strong>
+            </div>
+          </div>
+          <div class="quick-actions">
+            <button id="themeToggleDemo" type="button" title="Cycle through themes">
+              <svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              Try Themes
+            </button>
+            <button id="modeToggleDemo" type="button" title="Toggle Dark/Light">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+              </svg>
+              Toggle Mode
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="queue-card">
+        <div class="queue-head">
+          <div>
+            <p class="overline">Phase 1 Features</p>
+            <h2>What's New</h2>
+          </div>
+        </div>
+        <div class="queue-list" style="padding: 16px;">
+          <div style="color: var(--text-secondary); font-size: 12px; line-height: 1.8;">
+            <p style="margin: 0 0 12px 0; color: var(--text-primary); font-weight: 700;">✨ Enhanced Features:</p>
+            <p style="margin: 4px 0;">🎨 4 Themes (Original, Minimal, Modern, Professional)</p>
+            <p style="margin: 4px 0;">🌓 Dark/Light Mode Toggle</p>
+            <p style="margin: 4px 0;">⚡ Speed Control (0.25x - 2x)</p>
+            <p style="margin: 4px 0;">🎯 Quality Selector</p>
+            <p style="margin: 4px 0;">⌨️ 12+ Keyboard Shortcuts</p>
+            <p style="margin: 4px 0;">📱 Mobile Optimized</p>
+            <p style="margin: 4px 0;">📁 Format Validation</p>
+            <br>
+            <p style="margin: 12px 0 8px 0; color: var(--text-primary); font-weight: 700;">⌨️ Quick Shortcuts:</p>
+            <p style="margin: 4px 0;"><kbd style="background: var(--surface-300); padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 11px;">Space</kbd> Play/Pause</p>
+            <p style="margin: 4px 0;"><kbd style="background: var(--surface-300); padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 11px;">J/L</kbd> Seek ±10s</p>
+            <p style="margin: 4px 0;"><kbd style="background: var(--surface-300); padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 11px;">F</kbd> Fullscreen</p>
+            <p style="margin: 4px 0;"><kbd style="background: var(--surface-300); padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 11px;">&lt;/&gt;</kbd> Speed</p>
+          </div>
+        </div>
+        <div class="queue-foot">
+          <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2m-11 0h12v10H6V10Zm6 4v2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>
+          <span>Files remain in browser only</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-brand">Squicky Player</div>
+    <p>Phase 1 Complete - Privacy-first playback with enhanced features</p>
+    <span>v0.4.0-phase1</span>
+  </footer>
+
+  <input id="fileInput" type="file" accept="video/*,audio/*" multiple hidden>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Load Scripts -->
+  <script src="./theme-switcher.js"></script>
+  <script src="./enhanced-controls.js"></script>
+  <script src="./optimized-playback.js"></script>
+
+  <!-- Standalone Demo Logic -->
+  <script>
+    // Theme cycle demo
+    const themes = ['original', 'minimal', 'modern', 'professional'];
+    let currentThemeIndex = 0;
+    
+    document.getElementById('themeToggleDemo')?.addEventListener('click', () => {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      const theme = themes[currentThemeIndex];
+      
+      if (window.themeSwitcher) {
+        window.themeSwitcher.setTheme(theme);
+        showToast(`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`);
+      }
+    });
+    
+    document.getElementById('demoThemes')?.addEventListener('click', () => {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      const theme = themes[currentThemeIndex];
+      
+      if (window.themeSwitcher) {
+        window.themeSwitcher.setTheme(theme);
+        showToast(`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`);
+      }
+    });
+    
+    document.getElementById('modeToggleDemo')?.addEventListener('click', () => {
+      if (window.themeSwitcher) {
+        window.themeSwitcher.toggleMode();
+        showToast(`Mode: ${window.themeSwitcher.currentMode}`);
+      }
+    });
+    
+    // File upload
+    document.getElementById('browseButton')?.addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+    
+    document.getElementById('fileInput')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        loadFile(file);
+      }
+    });
+    
+    // Drag & drop
+    document.body.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        loadFile(file);
+      }
+    });
+    
+    document.body.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    
+    function loadFile(file) {
+      const player = document.getElementById('mainPlayer');
+      const container = document.getElementById('playerContainer');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (player && container && emptyState) {
+        const url = URL.createObjectURL(file);
+        player.src = url;
+        
+        emptyState.style.display = 'none';
+        container.style.display = 'block';
+        
+        document.getElementById('nowPlaying').textContent = file.name;
+        document.getElementById('sourceMode').textContent = 'NOW PLAYING';
+        
+        showToast(`Loaded: ${file.name}`);
+      }
+    }
+    
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.textContent = message;
+        toast.classList.add('visible');
+        setTimeout(() => {
+          toast.classList.remove('visible');
+        }, 2500);
+      }
+    }
+    
+    // Show welcome message
+    setTimeout(() => {
+      showToast('✨ Phase 1 loaded! Try themes & upload media');
+    }, 1000);
+  </script>
+</body>
+</html>
