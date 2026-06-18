@@ -1,0 +1,835 @@
+/**
+ * Advanced Controls Styles
+ * A-B loop, screenshot, speed selector, equalizer, audio boost, video filters
+ */
+
+/* ─── General Panel Styles ─────────────────────────────────────────── */
+
+.advanced-controls-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.advanced-controls-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.advanced-controls-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.advanced-controls-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+
+/* ─── A-B Loop Controls ────────────────────────────────────────────── */
+
+.ab-loop-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ab-loop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+}
+
+.ab-loop-btn:hover {
+  background: var(--control-hover);
+  border-color: var(--brand-primary);
+}
+
+.ab-loop-btn.active {
+  background: var(--brand-primary);
+  color: #fff;
+  border-color: var(--brand-primary);
+}
+
+.ab-loop-btn.clear-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.ab-loop-btn.clear-btn:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.ab-loop-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  background: var(--surface-100);
+  border-radius: 4px;
+}
+
+.ab-loop-indicator.loop-active {
+  color: var(--success);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* Timeline A-B markers */
+.ab-marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  border-radius: 2px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ab-marker-a {
+  background: var(--success);
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+}
+
+.ab-marker-b {
+  background: var(--error);
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+}
+
+.ab-loop-region {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ─── Screenshot Controls ──────────────────────────────────────────── */
+
+.screenshot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.screenshot-btn:hover {
+  background: var(--control-hover);
+  border-color: var(--brand-primary);
+  transform: scale(1.02);
+}
+
+.screenshot-btn:active {
+  transform: scale(0.98);
+}
+
+.screenshot-btn .icon {
+  font-size: 16px;
+}
+
+/* Screenshot flash overlay */
+.screenshot-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1000;
+  animation: screenshotFlash 0.3s ease-out;
+}
+
+@keyframes screenshotFlash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ─── Speed Selector ───────────────────────────────────────────────── */
+
+.speed-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.speed-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 42px;
+}
+
+.speed-btn:hover {
+  background: var(--control-hover);
+  color: var(--text-primary);
+}
+
+.speed-btn.active {
+  background: var(--brand-primary);
+  color: #fff;
+  border-color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.speed-btn.slow {
+  color: var(--warning);
+}
+
+.speed-btn.fast {
+  color: var(--success);
+}
+
+/* ─── Equalizer Panel ──────────────────────────────────────────────── */
+
+.eq-panel {
+  padding: 12px;
+  background: var(--surface-100);
+  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+}
+
+.eq-sliders {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  height: 160px;
+  padding: 12px 8px;
+}
+
+.eq-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.eq-band-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  background: var(--surface-200);
+  border-radius: 2px;
+  outline: none;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  cursor: pointer;
+}
+
+.eq-band-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.1s ease;
+}
+
+.eq-band-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.eq-band-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.eq-band-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.eq-band-value {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* EQ Presets */
+.eq-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.eq-preset-btn {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.eq-preset-btn:hover {
+  background: var(--control-hover);
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
+}
+
+.eq-preset-btn.active {
+  background: var(--brand-primary);
+  color: #fff;
+  border-color: var(--brand-primary);
+}
+
+/* ─── Audio Boost ──────────────────────────────────────────────────── */
+
+.audio-boost-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audio-boost-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--surface-200);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.audio-boost-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.1s ease;
+}
+
+.audio-boost-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.audio-boost-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.audio-boost-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 48px;
+  text-align: right;
+}
+
+.audio-boost-value.warning {
+  color: var(--warning);
+}
+
+.audio-boost-value.danger {
+  color: var(--error);
+}
+
+.audio-boost-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 11px;
+  color: var(--warning);
+}
+
+.audio-boost-warning .icon {
+  font-size: 14px;
+}
+
+/* ─── Video Filters Panel ──────────────────────────────────────────── */
+
+.filters-panel {
+  padding: 12px;
+  background: var(--surface-100);
+  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.filter-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-control-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.filter-control-value {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.filter-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--surface-200);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  border: none;
+  cursor: pointer;
+}
+
+/* Filter Presets */
+.filter-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.filter-preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-preset-card:hover {
+  background: var(--control-hover);
+  border-color: var(--brand-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-preset-card.active {
+  border-color: var(--brand-primary);
+  background: rgba(var(--brand-primary-rgb, 99, 102, 241), 0.1);
+}
+
+.filter-preset-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--surface-border);
+}
+
+.filter-preset-preview.normal {
+  background: linear-gradient(135deg, #666, #999);
+}
+
+.filter-preset-preview.cinema {
+  background: linear-gradient(135deg, #8b5e3c, #d4a574);
+}
+
+.filter-preset-preview.warm {
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+}
+
+.filter-preset-preview.cool {
+  background: linear-gradient(135deg, #2980b9, #6dd5fa);
+}
+
+.filter-preset-preview.vintage {
+  background: linear-gradient(135deg, #8e6f3e, #c4a35a);
+}
+
+.filter-preset-preview.bw {
+  background: linear-gradient(135deg, #2c2c2c, #7f7f7f);
+}
+
+.filter-preset-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Filter Reset Button */
+.filter-reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-reset-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+/* ─── Frame-by-frame Controls ──────────────────────────────────────── */
+
+.frame-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.frame-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--surface-border);
+  background: var(--control-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.frame-btn:hover {
+  background: var(--control-hover);
+  border-color: var(--brand-primary);
+}
+
+.frame-btn:active {
+  background: var(--control-active);
+  transform: scale(0.95);
+}
+
+.frame-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ─── Slide-in Overlay Panel ───────────────────────────────────────── */
+
+.advanced-overlay-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 90vw;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  padding: 16px;
+}
+
+.advanced-overlay-panel.open {
+  transform: translateX(0);
+}
+
+.advanced-overlay-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.advanced-overlay-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.advanced-overlay-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--control-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.advanced-overlay-panel-close:hover {
+  background: var(--control-hover);
+  color: var(--text-primary);
+}
+
+/* ─── Dark Mode Adjustments ────────────────────────────────────────── */
+
+[data-mode="dark"] .advanced-controls-panel {
+  background: var(--bg-elevated);
+  border-color: var(--surface-border);
+}
+
+[data-mode="dark"] .eq-panel,
+[data-mode="dark"] .filters-panel {
+  background: var(--surface-100);
+}
+
+[data-mode="dark"] .screenshot-flash {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* ─── Light Mode Adjustments ───────────────────────────────────────── */
+
+[data-mode="light"] .advanced-controls-panel {
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-mode="light"] .eq-band-slider::-webkit-slider-thumb {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+[data-mode="light"] .filter-preset-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Mobile Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .advanced-overlay-panel {
+    width: 100%;
+    max-width: 100%;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70vh;
+    max-height: 70vh;
+    border-left: none;
+    border-top: 1px solid var(--surface-border);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+  }
+
+  .advanced-overlay-panel.open {
+    transform: translateY(0);
+  }
+
+  .eq-sliders {
+    height: 120px;
+    gap: 8px;
+    padding: 8px 4px;
+  }
+
+  .eq-band-slider {
+    width: 80px;
+  }
+
+  .eq-presets {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-presets {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .speed-selector {
+    gap: 6px;
+  }
+
+  .speed-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-width: 48px;
+  }
+
+  .ab-loop-controls {
+    gap: 6px;
+  }
+
+  .ab-loop-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+
+  .frame-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .screenshot-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .audio-boost-slider::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .audio-boost-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .filter-slider::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  .filter-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ─── Reduced Motion Support ───────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .advanced-overlay-panel {
+    transition: none;
+  }
+
+  .screenshot-flash {
+    animation: none;
+    opacity: 0;
+  }
+
+  .ab-loop-btn,
+  .speed-btn,
+  .eq-preset-btn,
+  .filter-preset-card,
+  .screenshot-btn,
+  .frame-btn,
+  .filter-reset-btn {
+    transition: none;
+  }
+
+  .screenshot-btn:hover,
+  .filter-preset-card:hover {
+    transform: none;
+  }
+}
