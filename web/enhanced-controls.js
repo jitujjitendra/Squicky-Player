@@ -198,10 +198,14 @@ class EnhancedControls {
       // Don't trigger if user is typing in an input
       if (e.target.matches('input, textarea')) return;
       
+      // Check if media is loaded
       const mediaElements = document.querySelectorAll('video, audio');
       if (mediaElements.length === 0) return;
       
       const media = mediaElements[0];
+      
+      // Check if media has valid source
+      if (!media.src && !media.currentSrc) return;
       
       switch(e.key.toLowerCase()) {
         case ' ':
