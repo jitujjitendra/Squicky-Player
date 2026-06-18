@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "squicky/player",
+  "version": "0.3.0",
+  "title": "Squicky Player",
+  "category": "media",
+  "icon": "controls-play",
+  "description": "A privacy-first local and streaming media player.",
+  "textdomain": "squicky-player",
+  "editorScript": "file:./assets/editor.js",
+  "attributes": {
+    "id": {
+      "type": "number",
+      "default": 0
+    },
+    "src": {
+      "type": "string",
+      "default": ""
+    },
+    "type": {
+      "type": "string",
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "default": ""
+    },
+    "poster": {
+      "type": "string",
+      "default": ""
+    },
+    "thumbnails": {
+      "type": "string",
+      "default": ""
+    },
+    "kind": {
+      "type": "string",
+      "default": "video"
+    },
+    "autoplay": {
+      "type": "boolean",
+      "default": false
+    },
+    "muted": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "supports": {
+    "align": [
+      "wide",
+      "full"
+    ],
+    "html": false
+  }
+}

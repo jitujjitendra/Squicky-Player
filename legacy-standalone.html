@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09090b">
+  <meta name="color-scheme" content="dark">
+  <title>Squicky Player</title>
+
+  <!-- Tailwind is used directly from its official CDN; no build step is required. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#09090b",
+            panel: "#121216",
+            accent: "#e50914"
+          },
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"]
+          },
+          boxShadow: {
+            glow: "0 0 45px rgba(229, 9, 20, .2)"
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --accent: #e50914;
+      --accent-light: #ff3340;
+      --panel: rgba(20, 20, 24, .86);
+      --muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: #3f3f46 transparent;
+    }
+
+    html {
+      background: #09090b;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 5%, rgba(229, 9, 20, .12), transparent 27rem),
+        radial-gradient(circle at 90% 42%, rgba(99, 102, 241, .08), transparent 30rem),
+        #09090b;
+    }
+
+    button,
+    input,
+    select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
+    .glass {
+      background: linear-gradient(145deg, rgba(31, 31, 36, .82), rgba(14, 14, 17, .72));
+      border: 1px solid rgba(255, 255, 255, .09);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .36);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+
+    .upload-shell {
+      position: relative;
+      isolation: isolate;
+      background: linear-gradient(150deg, rgba(25, 25, 30, .88), rgba(12, 12, 15, .84));
+    }
+
+    .upload-shell::before {
+      position: absolute;
+      z-index: -2;
+      inset: -2px;
+      border-radius: 1.65rem;
+      content: "";
+      background: conic-gradient(from var(--angle, 0deg), transparent 15%, #e50914, #ff5360, transparent 45%);
+      animation: border-spin 5s linear infinite;
+    }
+
+    .upload-shell::after {
+      position: absolute;
+      z-index: -1;
+      inset: 1px;
+      border-radius: 1.52rem;
+      content: "";
+      background: linear-gradient(150deg, rgba(25, 25, 30, .98), rgba(10, 10, 12, .98));
+    }
+
+    .upload-shell.dragging {
+      transform: scale(1.012);
+      box-shadow: 0 0 65px rgba(229, 9, 20, .28);
+    }
+
+    .upload-shell.dragging::before {
+      background: conic-gradient(from var(--angle, 0deg), #e50914, #ff6972, #e50914);
+    }
+
+    @property --angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    @keyframes border-spin {
+      to { --angle: 360deg; }
+    }
+
+    @keyframes equalize {
+      0%, 100% { transform: scaleY(.2); }
+      50% { transform: scaleY(1); }
+    }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translate(-50%, 14px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .fade-up {
+      animation: fade-up .55s cubic-bezier(.22, 1, .36, 1) both;
+    }
+
+    .audio-bar {
+      transform-origin: bottom;
+      animation: equalize 1.15s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+
+    .is-playing .audio-bar {
+      animation-play-state: running;
+    }
+
+    .audio-bar:nth-child(2n) { animation-duration: .9s; animation-delay: -.3s; }
+    .audio-bar:nth-child(3n) { animation-duration: 1.4s; animation-delay: -.55s; }
+    .audio-bar:nth-child(4n) { animation-duration: .72s; animation-delay: -.15s; }
+
+    .control-button {
+      display: inline-grid;
+      width: 2.45rem;
+      height: 2.45rem;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: .8rem;
+      color: #d4d4d8;
+      transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .control-button:hover:not(:disabled) {
+      color: white;
+      border-color: rgba(255, 255, 255, .1);
+      background: rgba(255, 255, 255, .08);
+      transform: translateY(-1px);
+    }
+
+    .control-button:disabled {
+      cursor: not-allowed;
+      opacity: .3;
+    }
+
+    .seek-button {
+      position: relative;
+      width: 2.75rem;
+      height: 2.45rem;
+      border-radius: .8rem;
+      color: #d4d4d8;
+      transition: background .2s ease, color .2s ease;
+    }
+
+    .seek-button:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, .08);
+    }
+
+    input[type="range"] {
+      height: 4px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--accent) var(--range-progress, 0%), #3f3f46 var(--range-progress, 0%));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 14px;
+      height: 14px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 3px solid white;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 2px 12px rgba(229, 9, 20, .45);
+      transition: transform .15s ease;
+    }
+
+    input[type="range"]:hover::-webkit-slider-thumb {
+      transform: scale(1.14);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      border: 3px solid white;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 2px 12px rgba(229, 9, 20, .45);
+    }
+
+    .playlist-row[aria-current="true"] {
+      border-color: rgba(229, 9, 20, .48);
+      background: linear-gradient(90deg, rgba(229, 9, 20, .16), rgba(255, 255, 255, .045));
+    }
+
+    .playlist-row[aria-current="true"] .playlist-index {
+      color: #ff6670;
+    }
+
+    .line-clamp-1 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+    }
+
+    .media-stage:fullscreen {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      background: #000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .media-stage:fullscreen video {
+      max-height: calc(100vh - 118px);
+    }
+
+    .media-stage:fullscreen .controls-panel {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      border-radius: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, .96) 34%);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-sans text-zinc-100 antialiased selection:bg-red-600 selection:text-white">
+  <!-- Reusable inline SVG symbols keep this file self-contained and accessible. -->
+  <svg aria-hidden="true" class="hidden">
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7V5Zm6.5 0H17v14h-3.5V5Z" fill="currentColor"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M5 10v4h4l5 4V6L9 10H5Zm12.3-.8a4 4 0 0 1 0 5.6M19.5 7a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-muted" viewBox="0 0 24 24"><path d="M5 10v4h4l5 4V6L9 10H5Zm12-1 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M8 20H4v-4m12 4h4v-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-pip" viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Zm9 7h6v5h-6v-5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="M6 5v14m13-14L8 12l11 7V5Z" fill="currentColor"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M18 5v14M5 5l11 7-11 7V5Z" fill="currentColor"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></symbol>
+    <symbol id="i-subtitle" viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Zm3 7h4m2 0h4M7 15h2m2 0h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><path d="M4 6h11v12H4V6Zm11 4 5-3v10l-5-3v-4Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-audio" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Zm10-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-rewind" viewBox="0 0 24 24"><path d="m11 7-5 5 5 5M6 12h6a6 6 0 0 1 6 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24"><path d="m13 7 5 5-5 5m5-5h-6a6 6 0 0 0-6 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2m-11 0h12v10H6V10Zm6 4v2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></symbol>
+  </svg>
+
+  <div class="flex min-h-screen flex-col">
+    <header class="sticky top-0 z-40 border-b border-white/[.06] bg-zinc-950/75 backdrop-blur-xl">
+      <div class="mx-auto flex h-[72px] max-w-[1500px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <a href="#" class="group flex items-center gap-3 rounded-xl" aria-label="Squicky Player home">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-red-500 to-red-700 shadow-lg shadow-red-950/50 transition-transform group-hover:scale-105" aria-hidden="true">🎬</span>
+          <span class="text-lg font-bold tracking-tight sm:text-xl">Squicky <span class="text-red-500">Player</span></span>
+        </a>
+        <div class="flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[.06] px-3 py-1.5 text-xs font-medium text-emerald-300" title="Media never leaves this device">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_9px_#34d399]"></span>
+          <span class="hidden sm:inline">100% local playback</span>
+          <span class="sm:hidden">Private</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto flex w-full max-w-[1500px] flex-1 flex-col px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <!-- Landing/upload state -->
+      <section id="landing" class="flex flex-1 items-center justify-center py-6 transition-all duration-500" aria-labelledby="landing-title">
+        <div class="w-full max-w-3xl text-center">
+          <div class="mb-8 fade-up">
+            <p class="mb-3 text-xs font-bold uppercase tracking-[.28em] text-red-400">Your screen. Your files. Your privacy.</p>
+            <h1 id="landing-title" class="text-balance text-3xl font-black tracking-[-.04em] text-white sm:text-5xl lg:text-6xl">
+              Instant local playback,<br class="hidden sm:block"> beautifully simple.
+            </h1>
+            <p class="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
+              Play your personal media directly in the browser. Nothing is uploaded, stored remotely, or tracked.
+            </p>
+          </div>
+
+          <div id="dropZone" class="upload-shell mx-auto flex min-h-[310px] cursor-pointer flex-col items-center justify-center rounded-[1.6rem] p-7 transition-all duration-300 sm:min-h-[350px] sm:p-12" role="group" aria-label="Drop audio and video files or use the Browse File button">
+            <div class="mb-6 grid h-20 w-20 place-items-center rounded-3xl border border-red-400/15 bg-red-500/10 text-red-400 shadow-[0_0_35px_rgba(229,9,20,.15)] sm:h-24 sm:w-24">
+              <svg class="h-9 w-9 sm:h-11 sm:w-11"><use href="#i-upload"></use></svg>
+            </div>
+            <h2 class="max-w-xl text-xl font-bold leading-snug text-white sm:text-2xl">Drop your family video, movie or audio file here to play instantly</h2>
+            <p class="mt-3 text-sm text-zinc-500">Select one file or build a playlist with multiple files</p>
+            <button id="browseButton" type="button" class="mt-7 inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/50 transition hover:bg-red-500 hover:shadow-red-900/50 active:scale-[.98]">
+              <svg class="h-4 w-4"><use href="#i-plus"></use></svg>
+              Browse File
+            </button>
+          </div>
+
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-600">
+            <span>Video & audio</span><span class="h-1 w-1 rounded-full bg-zinc-700"></span>
+            <span>Multiple files</span><span class="h-1 w-1 rounded-full bg-zinc-700"></span>
+            <span>No upload</span>
+          </div>
+          <p class="mx-auto mt-3 max-w-xl text-[11px] leading-5 text-zinc-600">
+            Best browser compatibility: MP4 (H.264 + AAC), WebM (VP8/VP9 + Opus), MP3 and WAV.
+          </p>
+        </div>
+      </section>
+
+      <!-- Player state -->
+      <section id="playerApp" class="hidden w-full fade-up" aria-label="Media player">
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs font-bold uppercase tracking-[.2em] text-red-400">Now playing</p>
+            <h1 id="topFileName" class="mt-1 max-w-4xl truncate text-xl font-bold text-white sm:text-2xl">Media</h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="mobilePlaylistButton" type="button" class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.05] px-3.5 py-2.5 text-sm font-semibold text-zinc-200 transition hover:bg-white/10 xl:hidden" aria-label="Open playlist">
+              <svg class="h-4 w-4"><use href="#i-list"></use></svg>
+              Playlist
+            </button>
+            <button id="addFilesButton" type="button" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500" aria-label="Add media files">
+              <svg class="h-4 w-4"><use href="#i-plus"></use></svg>
+              Add files
+            </button>
+          </div>
+        </div>
+
+        <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div class="min-w-0 space-y-5">
+            <!-- Media canvas and custom controls -->
+            <div id="mediaStage" class="media-stage glass relative overflow-hidden rounded-2xl">
+              <div id="mediaCanvas" class="relative flex min-h-[230px] items-center justify-center bg-black sm:min-h-[400px] lg:min-h-[560px]">
+                <video id="videoPlayer" class="hidden max-h-[72vh] w-full bg-black object-contain" preload="metadata" playsinline crossorigin="anonymous"></video>
+                <audio id="audioPlayer" class="hidden" preload="metadata"></audio>
+
+                <div id="audioVisual" class="hidden h-full min-h-[330px] w-full flex-col items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(229,9,20,.2),transparent_40%),linear-gradient(145deg,#18181b,#09090b)] p-6 sm:min-h-[500px]">
+                  <div class="relative mb-8 grid h-36 w-36 place-items-center rounded-full border border-white/10 bg-zinc-900 shadow-[0_0_80px_rgba(229,9,20,.18)] sm:h-48 sm:w-48">
+                    <div class="absolute inset-4 rounded-full border border-white/[.06]"></div>
+                    <svg class="h-16 w-16 text-red-500 sm:h-20 sm:w-20"><use href="#i-audio"></use></svg>
+                  </div>
+                  <h2 id="audioTitle" class="line-clamp-1 max-w-2xl text-center text-xl font-bold text-white sm:text-3xl">Audio</h2>
+                  <p class="mt-2 text-sm text-zinc-500">Local audio playback</p>
+                  <div id="equalizer" class="mt-8 flex h-12 items-end gap-1" aria-hidden="true">
+                    <span class="audio-bar h-10 w-1 rounded-full bg-red-500"></span><span class="audio-bar h-7 w-1 rounded-full bg-red-400"></span>
+                    <span class="audio-bar h-12 w-1 rounded-full bg-red-600"></span><span class="audio-bar h-8 w-1 rounded-full bg-red-400"></span>
+                    <span class="audio-bar h-11 w-1 rounded-full bg-red-500"></span><span class="audio-bar h-6 w-1 rounded-full bg-red-300"></span>
+                    <span class="audio-bar h-9 w-1 rounded-full bg-red-500"></span><span class="audio-bar h-12 w-1 rounded-full bg-red-600"></span>
+                    <span class="audio-bar h-7 w-1 rounded-full bg-red-400"></span><span class="audio-bar h-10 w-1 rounded-full bg-red-500"></span>
+                    <span class="audio-bar h-6 w-1 rounded-full bg-red-300"></span><span class="audio-bar h-11 w-1 rounded-full bg-red-500"></span>
+                  </div>
+                </div>
+
+                <button id="centerPlayButton" type="button" class="absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/55 text-white shadow-2xl backdrop-blur-md transition hover:scale-105 hover:bg-red-600 sm:h-20 sm:w-20" aria-label="Play media">
+                  <svg class="ml-1 h-7 w-7 sm:h-9 sm:w-9"><use href="#i-play"></use></svg>
+                </button>
+
+                <div id="loadingIndicator" class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/30" role="status" aria-label="Loading media">
+                  <span class="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-red-500"></span>
+                </div>
+
+                <div id="errorPanel" class="absolute inset-0 z-20 hidden items-center justify-center bg-zinc-950/95 p-6 text-center" role="alert">
+                  <div class="max-w-md">
+                    <div class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-red-500/10 text-3xl">!</div>
+                    <h2 id="mediaErrorTitle" class="text-xl font-bold text-white">Unable to play this file</h2>
+                    <p id="mediaErrorMessage" class="mt-3 leading-6 text-zinc-400">This media format or codec is not supported by your current browser.</p>
+                    <p id="mediaErrorDetail" class="mt-3 rounded-xl border border-white/[.07] bg-white/[.035] px-3 py-2 text-xs leading-5 text-zinc-500"></p>
+                    <p class="mt-3 text-xs leading-5 text-zinc-500">For reliable playback, convert the file to MP4 with H.264 video and AAC audio. The copied command requires FFmpeg to be installed on Windows.</p>
+                    <div class="mt-6 flex flex-col justify-center gap-2 sm:flex-row sm:flex-wrap">
+                      <button id="copyConvertButton" type="button" class="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-2.5 text-sm font-bold text-red-200 transition hover:bg-red-500/20">Copy conversion command</button>
+                      <button id="errorRetryButton" type="button" class="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-bold text-zinc-200 transition hover:bg-white/[.07]">Retry anyway</button>
+                      <button id="errorNextButton" type="button" class="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-zinc-200">Choose another file</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="controls-panel relative z-20 border-t border-white/[.06] bg-zinc-950/90 px-3 pb-3 pt-4 backdrop-blur-xl sm:px-5 sm:pb-4">
+                <div class="mb-3 flex items-center gap-3">
+                  <span id="currentTime" class="w-11 text-right font-mono text-[11px] text-zinc-400 sm:text-xs">0:00</span>
+                  <input id="timeline" class="min-w-0 flex-1" type="range" min="0" max="100" value="0" step="0.01" aria-label="Seek through media">
+                  <span id="duration" class="w-11 font-mono text-[11px] text-zinc-400 sm:text-xs">0:00</span>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex min-w-0 items-center gap-0.5 sm:gap-1">
+                    <button id="previousButton" type="button" class="control-button" aria-label="Previous file" title="Previous file">
+                      <svg class="h-4 w-4"><use href="#i-prev"></use></svg>
+                    </button>
+                    <button id="playButton" type="button" class="grid h-11 w-11 flex-none place-items-center rounded-xl bg-white text-zinc-950 transition hover:scale-105 hover:bg-red-500 hover:text-white" aria-label="Play" title="Play/Pause (Space)">
+                      <svg class="h-5 w-5"><use href="#i-play"></use></svg>
+                    </button>
+                    <button id="nextButton" type="button" class="control-button" aria-label="Next file" title="Next file">
+                      <svg class="h-4 w-4"><use href="#i-next"></use></svg>
+                    </button>
+
+                    <div class="mx-1 hidden h-6 w-px bg-white/10 sm:block"></div>
+
+                    <button type="button" class="seek-button hidden sm:inline-grid place-items-center" data-seek="-10" aria-label="Back 10 seconds" title="Back 10 seconds">
+                      <svg class="h-5 w-5"><use href="#i-rewind"></use></svg><span class="absolute text-[8px] font-black">10</span>
+                    </button>
+                    <button type="button" class="seek-button hidden lg:inline-grid place-items-center" data-seek="-15" aria-label="Back 15 seconds" title="Back 15 seconds">
+                      <svg class="h-5 w-5"><use href="#i-rewind"></use></svg><span class="absolute text-[8px] font-black">15</span>
+                    </button>
+                    <button type="button" class="seek-button hidden lg:inline-grid place-items-center" data-seek="-30" aria-label="Back 30 seconds" title="Back 30 seconds">
+                      <svg class="h-5 w-5"><use href="#i-rewind"></use></svg><span class="absolute text-[8px] font-black">30</span>
+                    </button>
+                    <button type="button" class="seek-button hidden sm:inline-grid place-items-center" data-seek="10" aria-label="Forward 10 seconds" title="Forward 10 seconds">
+                      <svg class="h-5 w-5"><use href="#i-forward"></use></svg><span class="absolute text-[8px] font-black">10</span>
+                    </button>
+                    <button type="button" class="seek-button hidden lg:inline-grid place-items-center" data-seek="15" aria-label="Forward 15 seconds" title="Forward 15 seconds">
+                      <svg class="h-5 w-5"><use href="#i-forward"></use></svg><span class="absolute text-[8px] font-black">15</span>
+                    </button>
+                    <button type="button" class="seek-button hidden lg:inline-grid place-items-center" data-seek="30" aria-label="Forward 30 seconds" title="Forward 30 seconds">
+                      <svg class="h-5 w-5"><use href="#i-forward"></use></svg><span class="absolute text-[8px] font-black">30</span>
+                    </button>
+                  </div>
+
+                  <div class="flex flex-none items-center gap-0.5 sm:gap-1">
+                    <div class="group hidden items-center sm:flex">
+                      <button id="muteButton" type="button" class="control-button" aria-label="Mute" title="Mute (M)">
+                        <svg class="h-5 w-5"><use href="#i-volume"></use></svg>
+                      </button>
+                      <input id="volume" class="w-0 opacity-0 transition-all duration-300 group-hover:w-20 group-hover:opacity-100 group-focus-within:w-20 group-focus-within:opacity-100" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+                    </div>
+
+                    <label class="sr-only" for="playbackSpeed">Playback speed</label>
+                    <select id="playbackSpeed" class="h-10 cursor-pointer rounded-lg border border-transparent bg-transparent px-1.5 text-xs font-bold text-zinc-300 transition hover:border-white/10 hover:bg-white/[.06]" title="Playback speed">
+                      <option class="bg-zinc-900" value="0.5">0.5×</option>
+                      <option class="bg-zinc-900" value="0.75">0.75×</option>
+                      <option class="bg-zinc-900" value="1" selected>1×</option>
+                      <option class="bg-zinc-900" value="1.25">1.25×</option>
+                      <option class="bg-zinc-900" value="1.5">1.5×</option>
+                      <option class="bg-zinc-900" value="1.75">1.75×</option>
+                      <option class="bg-zinc-900" value="2">2×</option>
+                    </select>
+
+                    <button id="subtitleButton" type="button" class="control-button" aria-label="Load subtitles" title="Load .srt or .vtt subtitles">
+                      <svg class="h-5 w-5"><use href="#i-subtitle"></use></svg>
+                    </button>
+                    <button id="pipButton" type="button" class="control-button" aria-label="Picture in Picture" title="Picture in Picture">
+                      <svg class="h-5 w-5"><use href="#i-pip"></use></svg>
+                    </button>
+                    <button id="fullscreenButton" type="button" class="control-button" aria-label="Enter fullscreen" title="Fullscreen (F)">
+                      <svg class="h-5 w-5"><use href="#i-fullscreen"></use></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Mobile seek controls retain all requested seek intervals. -->
+                <div class="mt-3 grid grid-cols-6 gap-1 border-t border-white/[.06] pt-3 sm:hidden">
+                  <button type="button" class="rounded-lg py-2 text-[11px] font-bold text-zinc-400 hover:bg-white/[.06] hover:text-white" data-seek="-10">−10s</button>
+                  <button type="button" class="rounded-lg py-2 text-[11px] font-bold text-zinc-400 hover:bg-white/[.06] hover:text-white" data-seek="-15">−15s</button>
+                  <button type="button" class="rounded-lg py-2 text-[11px] font-bold text-zinc-400 hover:bg-white/[.06] hover:text-white" data-seek="-30">−30s</button>
+                  <button type="button" class="rounded-lg py-2 text-[11px] font-bold text-zinc-400 hover:bg-white/[.06] hover:text-white" data-seek="10">+10s</button>
+                  <button type="button" class="rounded-lg py-2 text-[11px] font-bold text-zinc-400 hover:bg-white/[.06] hover:text-white" data-seek="15">+15s</button>
+                  <button type="button" class="rounded-lg py-2 text-[11px] font-bold text-zinc-400 hover:bg-white/[.06] hover:text-white" data-seek="30">+30s</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- File information -->
+            <section class="glass rounded-2xl p-4 sm:p-5" aria-labelledby="file-info-heading">
+              <div class="mb-4 flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-[.2em] text-zinc-500">Details</p>
+                  <h2 id="file-info-heading" class="mt-1 text-base font-bold text-white">File information</h2>
+                </div>
+                <span id="mediaBadge" class="rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-red-300">Video</span>
+              </div>
+              <dl class="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4 lg:grid-cols-5">
+                <div class="col-span-2 sm:col-span-4 lg:col-span-1">
+                  <dt class="text-xs text-zinc-500">File name</dt>
+                  <dd id="infoName" class="mt-1 truncate text-sm font-semibold text-zinc-200" title="">—</dd>
+                </div>
+                <div><dt class="text-xs text-zinc-500">File size</dt><dd id="infoSize" class="mt-1 text-sm font-semibold text-zinc-200">—</dd></div>
+                <div><dt class="text-xs text-zinc-500">Media type</dt><dd id="infoType" class="mt-1 truncate text-sm font-semibold text-zinc-200">—</dd></div>
+                <div><dt class="text-xs text-zinc-500">Duration</dt><dd id="infoDuration" class="mt-1 text-sm font-semibold text-zinc-200">—</dd></div>
+                <div><dt class="text-xs text-zinc-500">Resolution</dt><dd id="infoResolution" class="mt-1 text-sm font-semibold text-zinc-200">—</dd></div>
+              </dl>
+            </section>
+
+            <section class="rounded-2xl border border-white/[.06] bg-white/[.025] p-4 sm:p-5" aria-labelledby="shortcuts-heading">
+              <h2 id="shortcuts-heading" class="text-sm font-bold text-zinc-300">Keyboard shortcuts</h2>
+              <div class="mt-3 flex flex-wrap gap-2 text-xs text-zinc-500">
+                <span class="rounded-lg border border-white/[.07] bg-black/20 px-2.5 py-1.5"><kbd class="font-semibold text-zinc-300">Space</kbd> Play/Pause</span>
+                <span class="rounded-lg border border-white/[.07] bg-black/20 px-2.5 py-1.5"><kbd class="font-semibold text-zinc-300">←</kbd> Back 10s</span>
+                <span class="rounded-lg border border-white/[.07] bg-black/20 px-2.5 py-1.5"><kbd class="font-semibold text-zinc-300">→</kbd> Forward 10s</span>
+                <span class="rounded-lg border border-white/[.07] bg-black/20 px-2.5 py-1.5"><kbd class="font-semibold text-zinc-300">M</kbd> Mute</span>
+                <span class="rounded-lg border border-white/[.07] bg-black/20 px-2.5 py-1.5"><kbd class="font-semibold text-zinc-300">F</kbd> Fullscreen</span>
+              </div>
+            </section>
+          </div>
+
+          <!-- Desktop playlist sidebar -->
+          <aside id="playlistSidebar" class="glass fixed inset-y-0 right-0 z-50 flex w-[min(88vw,360px)] translate-x-full flex-col rounded-none border-y-0 border-r-0 transition-transform duration-300 xl:sticky xl:top-[92px] xl:z-0 xl:h-[calc(100vh-116px)] xl:w-auto xl:translate-x-0 xl:rounded-2xl xl:border" aria-labelledby="playlist-heading" aria-hidden="true">
+            <div class="flex items-center justify-between border-b border-white/[.07] p-4">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-[.2em] text-red-400">Up next</p>
+                <h2 id="playlist-heading" class="mt-1 font-bold text-white">Playlist <span id="playlistCount" class="font-normal text-zinc-500">(0)</span></h2>
+              </div>
+              <button id="closePlaylistButton" type="button" class="control-button xl:hidden" aria-label="Close playlist">
+                <svg class="h-5 w-5"><use href="#i-x"></use></svg>
+              </button>
+            </div>
+            <div id="playlist" class="min-h-0 flex-1 space-y-2 overflow-y-auto p-3" role="list" aria-label="Selected media files"></div>
+            <div class="border-t border-white/[.07] p-3">
+              <button id="sidebarAddButton" type="button" class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 py-3 text-sm font-semibold text-zinc-400 transition hover:border-red-500/40 hover:bg-red-500/[.06] hover:text-white">
+                <svg class="h-4 w-4"><use href="#i-plus"></use></svg>
+                Add more files
+              </button>
+            </div>
+          </aside>
+          <div id="playlistBackdrop" class="fixed inset-0 z-40 hidden bg-black/70 backdrop-blur-sm xl:hidden"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-auto border-t border-white/[.06] bg-black/20">
+      <div class="mx-auto flex max-w-[1500px] items-start justify-center gap-3 px-4 py-6 text-center text-xs leading-5 text-zinc-500 sm:items-center sm:px-6">
+        <svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400 sm:mt-0"><use href="#i-lock"></use></svg>
+        <p><strong class="font-semibold text-zinc-300">Privacy First:</strong> Your media is processed 100% locally inside your browser. No files are ever uploaded to any server.</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Native file inputs are visually hidden but remain available to assistive technology. -->
+  <input id="fileInput" class="sr-only" type="file" accept="video/*,audio/*" multiple tabindex="-1" aria-hidden="true">
+  <input id="subtitleInput" class="sr-only" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" tabindex="-1" aria-hidden="true">
+
+  <!-- Resume confirmation is intentionally custom so it matches the app and remains keyboard accessible. -->
+  <div id="resumeModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/80 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="resume-title" aria-describedby="resume-description">
+    <div class="glass w-full max-w-md rounded-2xl p-6 fade-up sm:p-7">
+      <div class="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-red-500/10 text-red-400">
+        <svg class="h-6 w-6"><use href="#i-play"></use></svg>
+      </div>
+      <p class="text-xs font-bold uppercase tracking-[.2em] text-red-400">Welcome back</p>
+      <h2 id="resume-title" class="mt-2 text-2xl font-bold text-white">Resume playback?</h2>
+      <p id="resume-description" class="mt-3 leading-6 text-zinc-400">You stopped this file at <strong id="resumeTime" class="font-semibold text-zinc-200">0:00</strong>.</p>
+      <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button id="startOverButton" type="button" class="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-white/[.06] hover:text-white">Start over</button>
+        <button id="resumeButton" type="button" class="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-500">Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="pointer-events-none fixed bottom-6 left-1/2 z-[80] hidden max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-xl border border-white/10 bg-zinc-900/95 px-4 py-3 text-center text-sm font-medium text-zinc-100 shadow-2xl backdrop-blur-xl" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+      const icon = (id, className = "h-5 w-5") => `<svg class="${className}" aria-hidden="true"><use href="#${id}"></use></svg>`;
+
+      const els = {
+        landing: $("#landing"),
+        playerApp: $("#playerApp"),
+        dropZone: $("#dropZone"),
+        browseButton: $("#browseButton"),
+        fileInput: $("#fileInput"),
+        subtitleInput: $("#subtitleInput"),
+        video: $("#videoPlayer"),
+        audio: $("#audioPlayer"),
+        audioVisual: $("#audioVisual"),
+        audioTitle: $("#audioTitle"),
+        equalizer: $("#equalizer"),
+        mediaCanvas: $("#mediaCanvas"),
+        mediaStage: $("#mediaStage"),
+        playButton: $("#playButton"),
+        centerPlayButton: $("#centerPlayButton"),
+        previousButton: $("#previousButton"),
+        nextButton: $("#nextButton"),
+        muteButton: $("#muteButton"),
+        volume: $("#volume"),
+        timeline: $("#timeline"),
+        currentTime: $("#currentTime"),
+        duration: $("#duration"),
+        playbackSpeed: $("#playbackSpeed"),
+        fullscreenButton: $("#fullscreenButton"),
+        pipButton: $("#pipButton"),
+        subtitleButton: $("#subtitleButton"),
+        addFilesButton: $("#addFilesButton"),
+        sidebarAddButton: $("#sidebarAddButton"),
+        playlist: $("#playlist"),
+        playlistCount: $("#playlistCount"),
+        playlistSidebar: $("#playlistSidebar"),
+        playlistBackdrop: $("#playlistBackdrop"),
+        mobilePlaylistButton: $("#mobilePlaylistButton"),
+        closePlaylistButton: $("#closePlaylistButton"),
+        topFileName: $("#topFileName"),
+        mediaBadge: $("#mediaBadge"),
+        infoName: $("#infoName"),
+        infoSize: $("#infoSize"),
+        infoType: $("#infoType"),
+        infoDuration: $("#infoDuration"),
+        infoResolution: $("#infoResolution"),
+        loadingIndicator: $("#loadingIndicator"),
+        errorPanel: $("#errorPanel"),
+        mediaErrorTitle: $("#mediaErrorTitle"),
+        mediaErrorMessage: $("#mediaErrorMessage"),
+        mediaErrorDetail: $("#mediaErrorDetail"),
+        copyConvertButton: $("#copyConvertButton"),
+        errorRetryButton: $("#errorRetryButton"),
+        errorNextButton: $("#errorNextButton"),
+        resumeModal: $("#resumeModal"),
+        resumeTime: $("#resumeTime"),
+        resumeButton: $("#resumeButton"),
+        startOverButton: $("#startOverButton"),
+        toast: $("#toast")
+      };
+
+      const state = {
+        playlist: [],
+        currentIndex: -1,
+        currentMedia: null,
+        subtitleUrl: null,
+        autoplayOnLoad: false,
+        resumePosition: 0,
+        resumeKey: "",
+        toastTimer: null,
+        lastSavedSecond: -1
+      };
+
+      const mediaEvents = ["loadedmetadata", "timeupdate", "durationchange", "play", "pause", "waiting", "playing", "ended", "error", "volumechange"];
+
+      function isMediaFile(file) {
+        return file.type.startsWith("video/") || file.type.startsWith("audio/") ||
+          /\.(mp4|m4v|webm|ogv|mov|mkv|avi|mp3|wav|m4a|aac|ogg|oga|flac|opus)$/i.test(file.name);
+      }
+
+      function detectKind(file) {
+        if (file.type.startsWith("audio/") || /\.(mp3|wav|m4a|aac|oga|flac|opus)$/i.test(file.name)) return "audio";
+        return "video";
+      }
+
+      function getExtension(fileName) {
+        const match = fileName.match(/\.([a-z0-9]+)$/i);
+        return match ? match[1].toLowerCase() : "";
+      }
+
+      function describeFileType(file, kind) {
+        const extension = getExtension(file.name);
+        if (file.type && extension) return `${file.type} (.${extension})`;
+        if (file.type) return file.type;
+        if (extension) return `.${extension} ${kind} file`;
+        return `${kind} file`;
+      }
+
+      function buildConversionCommand(file) {
+        const extension = getExtension(file.name);
+        const baseName = extension ? file.name.slice(0, -(extension.length + 1)) : file.name;
+        const safeInput = file.name.replaceAll('"', '""');
+        const safeOutput = `${baseName}.browser.mp4`.replaceAll('"', '""');
+        return `ffmpeg -i "${safeInput}" -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -movflags +faststart "${safeOutput}"`;
+      }
+
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          const copied = document.execCommand("copy");
+          textarea.remove();
+          return copied;
+        }
+      }
+
+      function fileKey(file) {
+        return `squicky:${file.name}:${file.size}:${file.lastModified}`;
+      }
+
+      function formatBytes(bytes) {
+        if (!Number.isFinite(bytes) || bytes === 0) return "0 B";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        return `${(bytes / (1024 ** index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+      }
+
+      function formatTime(seconds) {
+        if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+        const total = Math.floor(seconds);
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+        return hours
+          ? `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+          : `${minutes}:${String(secs).padStart(2, "0")}`;
+      }
+
+      function showToast(message, duration = 2600) {
+        clearTimeout(state.toastTimer);
+        els.toast.textContent = message;
+        els.toast.classList.remove("hidden");
+        els.toast.style.animation = "toast-in .25s ease both";
+        state.toastTimer = setTimeout(() => els.toast.classList.add("hidden"), duration);
+      }
+
+      function openFilePicker() {
+        els.fileInput.value = "";
+        els.fileInput.click();
+      }
+
+      function handleFiles(fileList) {
+        const validFiles = Array.from(fileList).filter(isMediaFile);
+        if (!validFiles.length) {
+          showToast("Please choose a video or audio file.");
+          return;
+        }
+
+        const startingIndex = state.playlist.length;
+        validFiles.forEach((file) => {
+          state.playlist.push({
+            file,
+            kind: detectKind(file),
+            url: URL.createObjectURL(file),
+            key: fileKey(file)
+          });
+        });
+
+        renderPlaylist();
+        showPlayer();
+
+        if (state.currentIndex === -1) loadItem(0);
+        else showToast(`${validFiles.length} file${validFiles.length === 1 ? "" : "s"} added to playlist.`);
+
+        if (startingIndex > 0) {
+          const latestRow = els.playlist.querySelector(`[data-index="${startingIndex}"]`);
+          latestRow?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+
+      function showPlayer() {
+        els.landing.classList.add("opacity-0", "scale-[.98]");
+        setTimeout(() => {
+          els.landing.classList.add("hidden");
+          els.playerApp.classList.remove("hidden");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }, 280);
+      }
+
+      function resetCurrentMedia() {
+        if (state.currentMedia) {
+          saveProgress();
+          state.currentMedia.pause();
+          state.currentMedia.removeAttribute("src");
+          state.currentMedia.load();
+        }
+        els.video.classList.add("hidden");
+        els.audio.classList.add("hidden");
+        els.audioVisual.classList.add("hidden");
+        els.errorPanel.classList.add("hidden");
+        els.errorPanel.classList.remove("flex");
+        els.loadingIndicator.classList.remove("flex");
+        els.loadingIndicator.classList.add("hidden");
+        els.centerPlayButton.classList.remove("hidden");
+        clearSubtitle();
+      }
+
+      function loadItem(index, autoplay = false) {
+        if (index < 0 || index >= state.playlist.length) return;
+        resetCurrentMedia();
+
+        state.currentIndex = index;
+        state.lastSavedSecond = -1;
+        state.autoplayOnLoad = autoplay;
+        const item = state.playlist[index];
+        state.currentMedia = item.kind === "video" ? els.video : els.audio;
+        state.currentMedia.playbackRate = Number(els.playbackSpeed.value);
+        state.currentMedia.volume = Number(els.volume.value);
+        state.currentMedia.src = item.url;
+
+        if (item.kind === "video") {
+          els.video.classList.remove("hidden");
+          els.pipButton.disabled = !document.pictureInPictureEnabled;
+          els.subtitleButton.disabled = false;
+        } else {
+          els.audio.classList.remove("hidden");
+          els.audioVisual.classList.remove("hidden");
+          els.audioVisual.classList.add("flex");
+          els.audioTitle.textContent = item.file.name;
+          els.pipButton.disabled = true;
+          els.subtitleButton.disabled = true;
+        }
+
+        els.topFileName.textContent = item.file.name;
+        els.topFileName.title = item.file.name;
+        els.infoName.textContent = item.file.name;
+        els.infoName.title = item.file.name;
+        els.infoSize.textContent = formatBytes(item.file.size);
+        els.infoType.textContent = describeFileType(item.file, item.kind);
+        els.infoDuration.textContent = "Reading…";
+        els.infoResolution.textContent = item.kind === "video" ? "Reading…" : "Not applicable";
+        els.mediaBadge.textContent = item.kind;
+        els.timeline.value = "0";
+        updateRangeFill(els.timeline, 0);
+        els.currentTime.textContent = "0:00";
+        els.duration.textContent = "0:00";
+        els.previousButton.disabled = index === 0;
+        els.nextButton.disabled = index === state.playlist.length - 1;
+        updatePlayUI(false);
+        renderPlaylist();
+
+        state.currentMedia.load();
+      }
+
+      function renderPlaylist() {
+        els.playlistCount.textContent = `(${state.playlist.length})`;
+        els.playlist.innerHTML = "";
+
+        state.playlist.forEach((item, index) => {
+          const row = document.createElement("button");
+          row.type = "button";
+          row.className = "playlist-row flex w-full items-center gap-3 rounded-xl border border-transparent p-3 text-left transition hover:border-white/[.08] hover:bg-white/[.05]";
+          row.dataset.index = String(index);
+          row.setAttribute("role", "listitem");
+          row.setAttribute("aria-current", String(index === state.currentIndex));
+          row.setAttribute("aria-label", `Play ${item.file.name}`);
+          row.innerHTML = `
+            <span class="playlist-index grid h-10 w-10 flex-none place-items-center rounded-lg bg-black/30 text-zinc-500">
+              ${icon(item.kind === "video" ? "i-video" : "i-audio", "h-4 w-4")}
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-sm font-semibold text-zinc-200">${escapeHtml(item.file.name)}</span>
+              <span class="mt-1 block text-[11px] text-zinc-600">${item.kind} · ${formatBytes(item.file.size)}</span>
+            </span>
+            ${index === state.currentIndex ? '<span class="h-2 w-2 flex-none rounded-full bg-red-500 shadow-[0_0_8px_#e50914]"></span>' : ""}
+          `;
+          row.addEventListener("click", () => {
+            if (index !== state.currentIndex) loadItem(index, true);
+            closePlaylist();
+          });
+          els.playlist.appendChild(row);
+        });
+      }
+
+      function escapeHtml(value) {
+        const node = document.createElement("span");
+        node.textContent = value;
+        return node.innerHTML;
+      }
+
+      function safePlay() {
+        if (!state.currentMedia) return;
+        const promise = state.currentMedia.play();
+        if (promise) promise.catch(() => showToast("Playback needs a click to start in this browser."));
+      }
+
+      function togglePlayback() {
+        if (!state.currentMedia || state.currentMedia.readyState === 0) return;
+        state.currentMedia.paused ? safePlay() : state.currentMedia.pause();
+      }
+
+      function updatePlayUI(isPlaying) {
+        els.playButton.innerHTML = icon(isPlaying ? "i-pause" : "i-play");
+        els.playButton.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
+        els.centerPlayButton.innerHTML = icon(isPlaying ? "i-pause" : "i-play", "h-7 w-7 sm:h-9 sm:w-9");
+        els.centerPlayButton.setAttribute("aria-label", isPlaying ? "Pause media" : "Play media");
+        els.centerPlayButton.classList.toggle("opacity-0", isPlaying);
+        els.centerPlayButton.classList.toggle("pointer-events-none", isPlaying);
+        els.audioVisual.classList.toggle("is-playing", isPlaying);
+      }
+
+      function seekBy(seconds) {
+        if (!state.currentMedia || !Number.isFinite(state.currentMedia.duration)) return;
+        state.currentMedia.currentTime = Math.max(0, Math.min(state.currentMedia.duration, state.currentMedia.currentTime + seconds));
+        showToast(`${seconds > 0 ? "Forward" : "Back"} ${Math.abs(seconds)} seconds`, 1100);
+      }
+
+      function updateRangeFill(input, percentage) {
+        input.style.setProperty("--range-progress", `${Math.max(0, Math.min(100, percentage))}%`);
+      }
+
+      function updateTimeline() {
+        if (!state.currentMedia) return;
+        const current = state.currentMedia.currentTime || 0;
+        const total = state.currentMedia.duration || 0;
+        const percent = total ? (current / total) * 100 : 0;
+        els.timeline.value = String(percent);
+        els.currentTime.textContent = formatTime(current);
+        updateRangeFill(els.timeline, percent);
+
+        const rounded = Math.floor(current);
+        if (rounded > 0 && rounded % 3 === 0 && rounded !== state.lastSavedSecond) {
+          state.lastSavedSecond = rounded;
+          saveProgress();
+        }
+      }
+
+      function saveProgress() {
+        const item = state.playlist[state.currentIndex];
+        if (!item || !state.currentMedia || !Number.isFinite(state.currentMedia.currentTime)) return;
+        try {
+          const current = state.currentMedia.currentTime;
+          const duration = state.currentMedia.duration;
+          if (duration && duration - current < 8) localStorage.removeItem(item.key);
+          else if (current > 3) localStorage.setItem(item.key, String(current));
+        } catch {
+          // Playback continues normally if storage is unavailable or full.
+        }
+      }
+
+      function checkResume() {
+        const item = state.playlist[state.currentIndex];
+        if (!item || !state.currentMedia) return;
+        els.duration.textContent = formatTime(state.currentMedia.duration);
+        els.infoDuration.textContent = formatTime(state.currentMedia.duration);
+
+        if (item.kind === "video") {
+          const width = els.video.videoWidth;
+          const height = els.video.videoHeight;
+          els.infoResolution.textContent = width && height ? `${width} × ${height}` : "Unavailable";
+        }
+
+        let saved = 0;
+        try { saved = Number(localStorage.getItem(item.key)) || 0; } catch { saved = 0; }
+        if (saved > 5 && state.currentMedia.duration - saved > 10) {
+          state.resumePosition = saved;
+          state.resumeKey = item.key;
+          els.resumeTime.textContent = formatTime(saved);
+          els.resumeModal.classList.remove("hidden");
+          els.resumeModal.classList.add("flex");
+          setTimeout(() => els.resumeButton.focus(), 50);
+        } else if (state.autoplayOnLoad) {
+          safePlay();
+        }
+        state.autoplayOnLoad = false;
+      }
+
+      function closeResumeModal() {
+        els.resumeModal.classList.add("hidden");
+        els.resumeModal.classList.remove("flex");
+        els.playButton.focus();
+      }
+
+      function setVolume(value) {
+        if (!state.currentMedia) return;
+        state.currentMedia.volume = Number(value);
+        state.currentMedia.muted = Number(value) === 0;
+      }
+
+      function updateVolumeUI() {
+        if (!state.currentMedia) return;
+        const effectiveVolume = state.currentMedia.muted ? 0 : state.currentMedia.volume;
+        els.volume.value = String(effectiveVolume);
+        updateRangeFill(els.volume, effectiveVolume * 100);
+        const muted = state.currentMedia.muted || state.currentMedia.volume === 0;
+        els.muteButton.innerHTML = icon(muted ? "i-muted" : "i-volume");
+        els.muteButton.setAttribute("aria-label", muted ? "Unmute" : "Mute");
+      }
+
+      async function toggleFullscreen() {
+        try {
+          if (!document.fullscreenElement) await els.mediaStage.requestFullscreen();
+          else await document.exitFullscreen();
+        } catch {
+          showToast("Fullscreen is not available in this browser.");
+        }
+      }
+
+      async function togglePictureInPicture() {
+        if (state.currentMedia !== els.video || !document.pictureInPictureEnabled) return;
+        try {
+          if (document.pictureInPictureElement) await document.exitPictureInPicture();
+          else await els.video.requestPictureInPicture();
+        } catch {
+          showToast("Picture-in-Picture is not available for this video.");
+        }
+      }
+
+      function clearSubtitle() {
+        els.video.querySelectorAll("track").forEach((track) => track.remove());
+        if (state.subtitleUrl) URL.revokeObjectURL(state.subtitleUrl);
+        state.subtitleUrl = null;
+        els.subtitleButton.classList.remove("bg-red-500/15", "text-red-300");
+      }
+
+      function srtToVtt(text) {
+        const normalized = text.replace(/^\uFEFF/, "").replace(/\r+/g, "");
+        const converted = normalized.replace(
+          /(\d{1,2}:\d{2}:\d{2}),(\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}),(\d{3})/g,
+          "$1.$2 --> $3.$4"
+        );
+        return `WEBVTT\n\n${converted}`;
+      }
+
+      async function loadSubtitle(file) {
+        if (state.currentMedia !== els.video) {
+          showToast("Subtitles can only be loaded for video.");
+          return;
+        }
+        try {
+          clearSubtitle();
+          const text = await file.text();
+          const contents = /\.srt$/i.test(file.name) ? srtToVtt(text) : text;
+          const blob = new Blob([contents], { type: "text/vtt" });
+          state.subtitleUrl = URL.createObjectURL(blob);
+          const track = document.createElement("track");
+          track.kind = "subtitles";
+          track.label = file.name;
+          track.srclang = "en";
+          track.src = state.subtitleUrl;
+          track.default = true;
+          track.addEventListener("load", () => {
+            if (els.video.textTracks[0]) els.video.textTracks[0].mode = "showing";
+          }, { once: true });
+          els.video.appendChild(track);
+          els.subtitleButton.classList.add("bg-red-500/15", "text-red-300");
+          showToast(`Subtitles loaded: ${file.name}`);
+        } catch {
+          showToast("This subtitle file could not be read.");
+        }
+      }
+
+      function showMediaError() {
+        const item = state.playlist[state.currentIndex];
+        const mediaError = state.currentMedia?.error;
+        const code = mediaError?.code || 0;
+        const extension = item ? getExtension(item.file.name) : "";
+        const containerName = extension ? `.${extension.toUpperCase()}` : "This";
+        let title = "Unable to play this file";
+        let message = "This media format or codec is not supported by your current browser.";
+
+        if (code === MediaError.MEDIA_ERR_ABORTED) {
+          title = "Playback was interrupted";
+          message = "The browser stopped reading this file before playback could begin.";
+        } else if (code === MediaError.MEDIA_ERR_NETWORK) {
+          title = "The file could not be read";
+          message = "The browser lost access to the selected local file. Select it again and retry.";
+        } else if (code === MediaError.MEDIA_ERR_DECODE) {
+          title = "The media could not be decoded";
+          message = "The file opened, but its video or audio codec could not be decoded. The file may also contain damaged data.";
+        } else if (code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+          title = "Format or codec not supported";
+          message = "Your current browser cannot play this file's container, video codec, or audio codec.";
+        }
+
+        if (extension === "mkv") {
+          message = "MKV is a container, and browsers often cannot decode the video or audio codec stored inside it.";
+        } else if (extension === "avi") {
+          message = "AVI files commonly use older codecs that modern browsers do not include.";
+        } else if (extension === "mov") {
+          message += " Some MOV files use Apple ProRes or other codecs that Chromium browsers cannot decode.";
+        }
+
+        els.mediaErrorTitle.textContent = title;
+        els.mediaErrorMessage.textContent = message;
+        els.mediaErrorDetail.textContent = `${containerName} file · Browser media error ${code || "unknown"} · ${describeFileType(item.file, item.kind)}`;
+        els.copyConvertButton.classList.toggle("hidden", item.kind !== "video");
+        els.errorNextButton.textContent = state.currentIndex < state.playlist.length - 1 ? "Try next file" : "Choose another file";
+        els.loadingIndicator.classList.add("hidden");
+        els.loadingIndicator.classList.remove("flex");
+        els.errorPanel.classList.remove("hidden");
+        els.errorPanel.classList.add("flex");
+        els.centerPlayButton.classList.add("hidden");
+        updatePlayUI(false);
+      }
+
+      function openPlaylist() {
+        els.playlistSidebar.classList.remove("translate-x-full");
+        els.playlistBackdrop.classList.remove("hidden");
+        els.playlistSidebar.setAttribute("aria-hidden", "false");
+        els.closePlaylistButton.focus();
+      }
+
+      function closePlaylist() {
+        if (window.innerWidth >= 1280) return;
+        els.playlistSidebar.classList.add("translate-x-full");
+        els.playlistBackdrop.classList.add("hidden");
+        els.playlistSidebar.setAttribute("aria-hidden", "true");
+      }
+
+      function handleMediaEvent(event) {
+        if (event.currentTarget !== state.currentMedia) return;
+        switch (event.type) {
+          case "loadedmetadata": checkResume(); break;
+          case "timeupdate": updateTimeline(); break;
+          case "durationchange":
+            els.duration.textContent = formatTime(state.currentMedia.duration);
+            els.infoDuration.textContent = formatTime(state.currentMedia.duration);
+            break;
+          case "play": updatePlayUI(true); break;
+          case "pause": updatePlayUI(false); saveProgress(); break;
+          case "waiting":
+            els.loadingIndicator.classList.remove("hidden");
+            els.loadingIndicator.classList.add("flex");
+            break;
+          case "playing":
+            els.loadingIndicator.classList.add("hidden");
+            els.loadingIndicator.classList.remove("flex");
+            break;
+          case "ended":
+            saveProgress();
+            if (state.currentIndex < state.playlist.length - 1) loadItem(state.currentIndex + 1, true);
+            else updatePlayUI(false);
+            break;
+          case "error": showMediaError(); break;
+          case "volumechange": updateVolumeUI(); break;
+        }
+      }
+
+      mediaEvents.forEach((eventName) => {
+        els.video.addEventListener(eventName, handleMediaEvent);
+        els.audio.addEventListener(eventName, handleMediaEvent);
+      });
+
+      els.browseButton.addEventListener("click", (event) => { event.stopPropagation(); openFilePicker(); });
+      els.dropZone.addEventListener("click", (event) => {
+        if (event.target !== els.browseButton && !els.browseButton.contains(event.target)) openFilePicker();
+      });
+      els.fileInput.addEventListener("change", () => handleFiles(els.fileInput.files));
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        els.dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          els.dropZone.classList.add("dragging");
+        });
+      });
+      ["dragleave", "drop"].forEach((eventName) => {
+        els.dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          els.dropZone.classList.remove("dragging");
+        });
+      });
+      els.dropZone.addEventListener("drop", (event) => handleFiles(event.dataTransfer.files));
+      document.addEventListener("dragover", (event) => event.preventDefault());
+      document.addEventListener("drop", (event) => event.preventDefault());
+
+      [els.playButton, els.centerPlayButton].forEach((button) => button.addEventListener("click", togglePlayback));
+      $$("[data-seek]").forEach((button) => button.addEventListener("click", () => seekBy(Number(button.dataset.seek))));
+      els.previousButton.addEventListener("click", () => loadItem(state.currentIndex - 1, true));
+      els.nextButton.addEventListener("click", () => loadItem(state.currentIndex + 1, true));
+      els.errorNextButton.addEventListener("click", () => {
+        if (state.currentIndex < state.playlist.length - 1) loadItem(state.currentIndex + 1, true);
+        else openFilePicker();
+      });
+      els.copyConvertButton.addEventListener("click", async () => {
+        const item = state.playlist[state.currentIndex];
+        if (!item) return;
+        const copied = await copyText(buildConversionCommand(item.file));
+        showToast(
+          copied
+            ? "FFmpeg command copied. Run it inside the folder containing your video."
+            : "The browser blocked clipboard access.",
+          4200
+        );
+      });
+      els.errorRetryButton.addEventListener("click", () => {
+        const item = state.playlist[state.currentIndex];
+        if (!item) return;
+        try { localStorage.removeItem(item.key); } catch {}
+        loadItem(state.currentIndex, true);
+      });
+
+      els.timeline.addEventListener("input", () => {
+        if (!state.currentMedia || !Number.isFinite(state.currentMedia.duration)) return;
+        state.currentMedia.currentTime = (Number(els.timeline.value) / 100) * state.currentMedia.duration;
+        updateRangeFill(els.timeline, Number(els.timeline.value));
+      });
+
+      els.volume.addEventListener("input", () => setVolume(els.volume.value));
+      els.muteButton.addEventListener("click", () => {
+        if (!state.currentMedia) return;
+        state.currentMedia.muted = !state.currentMedia.muted;
+      });
+      els.playbackSpeed.addEventListener("change", () => {
+        if (state.currentMedia) state.currentMedia.playbackRate = Number(els.playbackSpeed.value);
+        showToast(`Playback speed: ${els.playbackSpeed.options[els.playbackSpeed.selectedIndex].text}`, 1400);
+      });
+      els.fullscreenButton.addEventListener("click", toggleFullscreen);
+      els.pipButton.addEventListener("click", togglePictureInPicture);
+      els.subtitleButton.addEventListener("click", () => {
+        els.subtitleInput.value = "";
+        els.subtitleInput.click();
+      });
+      els.subtitleInput.addEventListener("change", () => {
+        if (els.subtitleInput.files[0]) loadSubtitle(els.subtitleInput.files[0]);
+      });
+
+      [els.addFilesButton, els.sidebarAddButton].forEach((button) => button.addEventListener("click", openFilePicker));
+      els.mobilePlaylistButton.addEventListener("click", openPlaylist);
+      els.closePlaylistButton.addEventListener("click", closePlaylist);
+      els.playlistBackdrop.addEventListener("click", closePlaylist);
+
+      els.resumeButton.addEventListener("click", () => {
+        if (state.currentMedia) state.currentMedia.currentTime = state.resumePosition;
+        closeResumeModal();
+        safePlay();
+      });
+      els.startOverButton.addEventListener("click", () => {
+        try { localStorage.removeItem(state.resumeKey); } catch {}
+        if (state.currentMedia) state.currentMedia.currentTime = 0;
+        closeResumeModal();
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        els.fullscreenButton.setAttribute("aria-label", document.fullscreenElement ? "Exit fullscreen" : "Enter fullscreen");
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const tag = document.activeElement?.tagName;
+        const isFormControl = tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || tag === "BUTTON";
+        if (event.key === "Escape") {
+          closePlaylist();
+          if (!els.resumeModal.classList.contains("hidden")) closeResumeModal();
+          return;
+        }
+        if (isFormControl || !state.currentMedia) return;
+
+        if (event.code === "Space") {
+          event.preventDefault();
+          togglePlayback();
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          seekBy(-10);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          seekBy(10);
+        } else if (event.key.toLowerCase() === "m") {
+          state.currentMedia.muted = !state.currentMedia.muted;
+        } else if (event.key.toLowerCase() === "f") {
+          toggleFullscreen();
+        }
+      });
+
+      window.addEventListener("beforeunload", () => {
+        saveProgress();
+        state.playlist.forEach((item) => URL.revokeObjectURL(item.url));
+        if (state.subtitleUrl) URL.revokeObjectURL(state.subtitleUrl);
+      });
+
+      window.addEventListener("resize", () => {
+        const desktop = window.innerWidth >= 1280;
+        els.playlistSidebar.setAttribute("aria-hidden", String(!desktop && els.playlistSidebar.classList.contains("translate-x-full")));
+        if (desktop) els.playlistBackdrop.classList.add("hidden");
+      });
+
+      updateRangeFill(els.volume, 100);
+      els.pipButton.disabled = true;
+      els.subtitleButton.disabled = true;
+      els.playlistSidebar.setAttribute("aria-hidden", String(window.innerWidth < 1280));
+    })();
+  </script>
+</body>
+</html>

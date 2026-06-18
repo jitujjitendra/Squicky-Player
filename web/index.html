@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#070708">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Squicky Player - a privacy-first universal web media player.">
+    <title>Squicky Player - Universal Private Playback</title>
+    <script type="module" crossorigin src="./assets/index-CGrBcqLS.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-JU5YNuC8.css">
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Squicky Player home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 0 3 5m3-5 3 5m5 0H3m6 4 6 3-6 3v-6Z"/></svg>
+        </span>
+        <span class="brand-name">Squicky <strong>Player</strong></span>
+        <span class="alpha">PHASE 2</span>
+      </a>
+      <nav class="header-actions" aria-label="Product links">
+        <span class="privacy-chip"><i></i> Zero-upload mode</span>
+        <a href="#capabilities">Device report</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="overline">Universal media, beautifully private</p>
+          <h1>Your screen deserves<br><em>a better player.</em></h1>
+          <p class="hero-lede">Local files, modern streams and adaptive playback in one cinematic interface. Your private media stays on your device.</p>
+        </div>
+        <div class="hero-stats" aria-label="Core player features">
+          <div><strong>3</strong><span>Playback engines</span></div>
+          <div><strong>0 B</strong><span>Uploaded</span></div>
+          <div><strong>ABR+</strong><span>Audio and previews</span></div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Squicky Player workspace">
+        <div class="stage-column">
+          <div id="emptyState" class="empty-state">
+            <div class="empty-glow"></div>
+            <div class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></svg>
+            </div>
+            <p class="empty-kicker">Private by design</p>
+            <h2>Drop a video or audio file</h2>
+            <p>Nothing leaves this browser. Add multiple files to create an instant local playlist.</p>
+            <div class="empty-actions">
+              <button id="browseButton" class="button primary" type="button">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+                Browse media
+              </button>
+              <button id="urlButton" class="button ghost" type="button">Open stream URL</button>
+            </div>
+            <div class="format-row"><span>MP4</span><span>WEBM</span><span>MP3</span><span>HLS</span><span>DASH</span></div>
+          </div>
+
+          <squicky-player id="player" class="is-hidden"></squicky-player>
+
+          <div class="under-player">
+            <div class="now-playing">
+              <span class="pulse"></span>
+              <div>
+                <small id="sourceMode">WAITING FOR MEDIA</small>
+                <strong id="nowPlaying">No source selected</strong>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <button id="subtitleButton" type="button" title="Load SRT or VTT subtitles" disabled>
+                <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Zm3 7h4m2 0h4M7 15h2m2 0h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></svg>
+                Add subtitles
+              </button>
+              <button id="addMediaButton" type="button" title="Add media">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+                Add media
+              </button>
+              <button id="clearButton" type="button" title="Clear playlist">Clear queue</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="queue-card" aria-labelledby="queueTitle">
+          <div class="queue-head">
+            <div>
+              <p class="overline">Session queue</p>
+              <h2 id="queueTitle">Up next <span id="queueCount">0</span></h2>
+            </div>
+            <button id="compactAddButton" class="round-button" type="button" aria-label="Add media">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+            </button>
+          </div>
+          <div id="queue" class="queue-list">
+            <div class="queue-empty">
+              <span>01</span>
+              <p>Your local playlist will appear here.</p>
+            </div>
+          </div>
+          <div class="queue-foot">
+            <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2m-11 0h12v10H6V10Zm6 4v2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>
+            <span>Files remain in browser memory only</span>
+          </div>
+        </aside>
+      </section>
+
+      <section id="capabilities" class="capabilities">
+        <div class="section-copy">
+          <p class="overline">Device intelligence</p>
+          <h2>Built for the browser you actually use.</h2>
+          <p>Squicky detects the current device instead of promising capabilities the browser cannot deliver.</p>
+        </div>
+        <div id="capabilityGrid" class="capability-grid"></div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-brand">Squicky Player</div>
+      <p>Privacy-first playback foundation - Web Component SDK - WordPress-ready architecture</p>
+      <span>v0.3.0</span>
+    </footer>
+
+    <input id="fileInput" type="file" accept="video/*,audio/*,.m3u8,.mpd" multiple hidden>
+    <input id="subtitleInput" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" hidden>
+
+    <dialog id="urlDialog">
+      <form id="urlForm" method="dialog">
+        <button id="closeDialogButton" class="dialog-close" type="button" aria-label="Close">&times;</button>
+        <p class="overline">Network source</p>
+        <h2>Open a media URL</h2>
+        <p>Load a direct MP4/WebM file, HLS manifest or MPEG-DASH manifest.</p>
+        <label for="streamUrl">Media URL</label>
+        <input id="streamUrl" type="url" required placeholder="https://example.com/video.m3u8">
+        <label for="streamTitle">Display title</label>
+        <input id="streamTitle" type="text" placeholder="Optional title">
+        <label for="thumbnailUrl">Thumbnail WebVTT URL</label>
+        <input id="thumbnailUrl" type="url" placeholder="Optional preview track URL">
+        <div class="dialog-actions">
+          <button class="button ghost" value="cancel">Cancel</button>
+          <button class="button primary" value="default">Load source</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
