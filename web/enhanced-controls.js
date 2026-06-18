@@ -195,58 +195,75 @@ class EnhancedControls {
    */
   addKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-      // Don't trigger if user is typing in an input
-      if (e.target.matches('input, textarea')) return;
+      // Don't trigger if user is typing in an input/dialog
+      if (e.target.matches('input, textarea, select, [contenteditable]')) return;
+      if (e.target.closest('dialog[open]')) return;
       
-      // Check if media is loaded
-      const mediaElements = document.querySelectorAll('video, audio');
-      if (mediaElements.length === 0) return;
+      // Find media element - check Shadow DOM first
+      let media = null;
+      const player = document.querySelector('squicky-player#player');
+      if (player && player.shadowRoot) {
+        media = player.shadowRoot.querySelector('video') || player.shadowRoot.querySelector('audio');
+      }
+      if (!media) {
+        media = document.querySelector('video') || document.querySelector('audio');
+      }
       
-      const media = mediaElements[0];
+      // No media found at all
+      if (!media) return;
       
       // Check if media has valid source
-      if (!media.src && !media.currentSrc) return;
+      if (!media.src && !media.currentSrc && media.readyState === 0) return;
       
-      switch(e.key.toLowerCase()) {
+      const key = e.key;
+      
+      switch(key) {
         case ' ':
         case 'k':
+        case 'K':
           e.preventDefault();
           media.paused ? media.play() : media.pause();
+          this.showFeedback(media.paused ? '⏸ Paused' : '▶ Playing');
           break;
           
-        case 'arrowleft':
+        case 'ArrowLeft':
         case 'j':
+        case 'J':
           e.preventDefault();
           media.currentTime = Math.max(0, media.currentTime - 10);
           this.showSeekFeedback(-10);
           break;
           
-        case 'arrowright':
+        case 'ArrowRight':
         case 'l':
+        case 'L':
           e.preventDefault();
-          media.currentTime = Math.min(media.duration, media.currentTime + 10);
+          media.currentTime = Math.min(media.duration || 0, media.currentTime + 10);
           this.showSeekFeedback(+10);
           break;
           
-        case 'arrowup':
+        case 'ArrowUp':
           e.preventDefault();
-          media.volume = Math.min(1, media.volume + 0.1);
-          this.showVolumeFeedback();
+          media.volume = Math.min(1, (media.volume + 0.05).toFixed(2));
+          if (media.muted) media.muted = false;
+          this.showVolumeFeedback(media);
           break;
           
-        case 'arrowdown':
+        case 'ArrowDown':
           e.preventDefault();
-          media.volume = Math.max(0, media.volume - 0.1);
-          this.showVolumeFeedback();
+          media.volume = Math.max(0, (media.volume - 0.05).toFixed(2));
+          this.showVolumeFeedback(media);
           break;
           
         case 'm':
+        case 'M':
           e.preventDefault();
           media.muted = !media.muted;
           this.showMuteFeedback(media.muted);
           break;
           
         case 'f':
+        case 'F':
           e.preventDefault();
           this.toggleFullscreen();
           break;
@@ -255,13 +272,15 @@ class EnhancedControls {
           e.preventDefault();
           if (media.paused) {
             media.currentTime = Math.max(0, media.currentTime - 1/30); // Previous frame
+            this.showFeedback('⏪ Previous frame');
           }
           break;
           
         case '.':
           e.preventDefault();
           if (media.paused) {
-            media.currentTime = Math.min(media.duration, media.currentTime + 1/30); // Next frame
+            media.currentTime = Math.min(media.duration || 0, media.currentTime + 1/30); // Next frame
+            this.showFeedback('⏩ Next frame');
           }
           break;
           
@@ -275,24 +294,27 @@ class EnhancedControls {
           this.increaseSpeed();
           break;
           
-        case '0':
-        case 'home':
+        case 'Home':
           e.preventDefault();
           media.currentTime = 0;
+          this.showFeedback('⏮ Start');
           break;
           
-        case 'end':
+        case 'End':
           e.preventDefault();
-          media.currentTime = media.duration;
+          if (media.duration) media.currentTime = media.duration;
+          this.showFeedback('⏭ End');
           break;
       }
       
       // Number keys for seeking (0-9 = 0%-90%)
-      if (e.key >= '0' && e.key <= '9' && !e.shiftKey) {
+      if (key >= '0' && key <= '9' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
-        const percent = parseInt(e.key) / 10;
-        media.currentTime = media.duration * percent;
-        this.showSeekFeedback(null, percent);
+        const percent = parseInt(key) / 10;
+        if (media.duration) {
+          media.currentTime = media.duration * percent;
+          this.showSeekFeedback(null, percent);
+        }
       }
     });
   }
@@ -334,11 +356,18 @@ class EnhancedControls {
     );
   }
   
-  showVolumeFeedback() {
-    const mediaElements = document.querySelectorAll('video, audio');
-    if (mediaElements.length > 0) {
-      const volume = Math.round(mediaElements[0].volume * 100);
-      this.showFeedback(`Volume: ${volume}%`);
+  showVolumeFeedback(media) {
+    if (!media) {
+      const player = document.querySelector('squicky-player#player');
+      if (player && player.shadowRoot) {
+        media = player.shadowRoot.querySelector('video') || player.shadowRoot.querySelector('audio');
+      }
+      if (!media) media = document.querySelector('video') || document.querySelector('audio');
+    }
+    if (media) {
+      const volume = Math.round(media.volume * 100);
+      const icon = volume === 0 ? '🔇' : volume < 33 ? '🔈' : volume < 66 ? '🔉' : '🔊';
+      this.showFeedback(`${icon} Volume: ${volume}%`);
     }
   }
   

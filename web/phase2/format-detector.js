@@ -7,6 +7,193 @@ class FormatDetector {
   constructor() {
     this.supportMatrix = this.buildSupportMatrix();
     this.qualityLevels = this.defineQualityLevels();
+    this.setupErrorInterception();
+  }
+
+  /**
+   * Setup error interception for better format error messages
+   */
+  setupErrorInterception() {
+    // Listen for media errors and provide better feedback
+    document.addEventListener('error', (e) => {
+      if (e.target && (e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
+        this.handleMediaError(e.target);
+      }
+    }, true);
+
+    // Also listen for custom player errors
+    window.addEventListener('player:error', (e) => {
+      if (e.detail && e.detail.type === 'SOURCE_NOT_SUPPORTED') {
+        this.showFormatHelp(e.detail.filename || '');
+      }
+    });
+  }
+
+  /**
+   * Handle media element error - show helpful info
+   */
+  handleMediaError(mediaEl) {
+    // Try to get the filename from the source
+    const src = mediaEl.currentSrc || mediaEl.src || '';
+    const filename = decodeURIComponent(src.split('/').pop().split('?')[0] || '');
+    if (filename) {
+      this.showFormatHelp(filename);
+    }
+  }
+
+  /**
+   * Detect codecs from filename pattern
+   */
+  detectCodecsFromFilename(filename) {
+    const lower = filename.toLowerCase();
+    const detected = {
+      videoCodec: null,
+      audioCodec: null,
+      issues: [],
+      suggestions: []
+    };
+
+    // Video codec detection from filename
+    if (lower.includes('hevc') || lower.includes('h265') || lower.includes('h.265') || lower.includes('x265')) {
+      detected.videoCodec = 'HEVC (H.265)';
+      detected.issues.push('HEVC/H.265 has limited browser support (only Safari and some Edge versions)');
+      detected.suggestions.push('Re-encode to H.264 using: ffmpeg -i input.mkv -c:v libx264 -c:a aac output.mp4');
+    }
+    if (lower.includes('h264') || lower.includes('h.264') || lower.includes('x264') || lower.includes('avc')) {
+      detected.videoCodec = 'H.264 (AVC)';
+    }
+    if (lower.includes('av1')) {
+      detected.videoCodec = 'AV1';
+    }
+    if (lower.includes('vp9')) {
+      detected.videoCodec = 'VP9';
+    }
+
+    // Audio codec detection from filename
+    if (lower.includes('ddp') || lower.includes('dd+') || lower.includes('dolby digital plus') || lower.includes('eac3')) {
+      detected.audioCodec = 'Dolby Digital Plus (EAC3)';
+      detected.issues.push('Dolby Digital Plus / EAC3 is NOT supported in browsers');
+      detected.suggestions.push('Re-encode audio to AAC: ffmpeg -i input.mkv -c:v copy -c:a aac -b:a 256k output.mp4');
+    }
+    if (lower.includes('atmos')) {
+      detected.audioCodec = (detected.audioCodec || '') + ' + Dolby Atmos';
+      detected.issues.push('Dolby Atmos spatial audio is not supported in web browsers');
+    }
+    if (lower.includes('dts')) {
+      detected.audioCodec = 'DTS';
+      detected.issues.push('DTS audio is NOT supported in any browser');
+      detected.suggestions.push('Re-encode audio to AAC: ffmpeg -i input.mkv -c:v copy -c:a aac output.mp4');
+    }
+    if (lower.includes('truehd')) {
+      detected.audioCodec = 'TrueHD';
+      detected.issues.push('TrueHD audio is NOT supported in browsers');
+    }
+    if (lower.includes('ac3') || lower.includes('ac-3')) {
+      detected.audioCodec = 'AC-3 (Dolby Digital)';
+      detected.issues.push('AC-3 has limited browser support');
+    }
+    if (lower.includes('flac') && !lower.endsWith('.flac')) {
+      detected.audioCodec = 'FLAC (in container)';
+      detected.issues.push('FLAC inside MKV/MP4 may not be supported');
+    }
+    if (lower.includes('aac') || lower.includes('m4a')) {
+      detected.audioCodec = detected.audioCodec || 'AAC';
+    }
+
+    // Quality/source detection
+    if (lower.includes('webrip') || lower.includes('web-rip')) {
+      detected.source = 'WEBRip';
+    }
+    if (lower.includes('bluray') || lower.includes('bdrip') || lower.includes('brrip')) {
+      detected.source = 'BluRay';
+    }
+    if (lower.includes('remux')) {
+      detected.source = 'Remux (untouched)';
+      detected.issues.push('Remux files often have unsupported codecs (HEVC + DTS/TrueHD)');
+    }
+
+    // Channel info
+    if (lower.includes('5.1') || lower.includes('5 1')) {
+      detected.channels = '5.1 Surround';
+    }
+    if (lower.includes('7.1')) {
+      detected.channels = '7.1 Surround';
+    }
+
+    return detected;
+  }
+
+  /**
+   * Show format help overlay when unsupported file is detected
+   */
+  showFormatHelp(filename) {
+    if (!filename) return;
+
+    const codecInfo = this.detectCodecsFromFilename(filename);
+    if (codecInfo.issues.length === 0) return; // No known issues detected
+
+    // Check if help overlay already exists
+    const existing = document.querySelector('.format-help-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'format-help-overlay';
+    overlay.innerHTML = `
+      <div class="format-help-card">
+        <div class="format-help-header">
+          <span class="format-help-icon">⚠️</span>
+          <h3>Codec Compatibility Issue</h3>
+          <button class="format-help-close" onclick="this.closest('.format-help-overlay').remove()">&times;</button>
+        </div>
+        <div class="format-help-body">
+          <p class="format-help-filename">${filename.length > 60 ? filename.substring(0, 57) + '...' : filename}</p>
+          
+          <div class="format-help-detected">
+            ${codecInfo.videoCodec ? `<div class="codec-tag video"><strong>Video:</strong> ${codecInfo.videoCodec}</div>` : ''}
+            ${codecInfo.audioCodec ? `<div class="codec-tag audio"><strong>Audio:</strong> ${codecInfo.audioCodec}</div>` : ''}
+            ${codecInfo.channels ? `<div class="codec-tag channel"><strong>Channels:</strong> ${codecInfo.channels}</div>` : ''}
+            ${codecInfo.source ? `<div class="codec-tag source"><strong>Source:</strong> ${codecInfo.source}</div>` : ''}
+          </div>
+
+          <div class="format-help-issues">
+            <h4>Why it doesn't play:</h4>
+            <ul>
+              ${codecInfo.issues.map(issue => `<li>${issue}</li>`).join('')}
+            </ul>
+          </div>
+
+          ${codecInfo.suggestions.length > 0 ? `
+          <div class="format-help-solutions">
+            <h4>How to fix:</h4>
+            <ul>
+              ${codecInfo.suggestions.map(s => `<li><code>${s}</code></li>`).join('')}
+            </ul>
+            <p class="format-help-tip">Use <a href="https://handbrake.fr/" target="_blank" rel="noopener">HandBrake</a> (GUI) or 
+            <a href="https://ffmpeg.org/" target="_blank" rel="noopener">FFmpeg</a> (CLI) to convert.</p>
+          </div>
+          ` : ''}
+
+          <div class="format-help-compatible">
+            <h4>Browser-compatible formats:</h4>
+            <div class="compatible-list">
+              <span class="compat-badge good">MP4 (H.264 + AAC)</span>
+              <span class="compat-badge good">WebM (VP9 + Opus)</span>
+              <span class="compat-badge ok">MP4 (H.265) - Safari only</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Auto-show with animation
+    requestAnimationFrame(() => overlay.classList.add('visible'));
+
+    // Close on backdrop click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
   }
 
   /**
