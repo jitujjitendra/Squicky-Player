@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="original" data-mode="dark">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +7,10 @@
     <meta name="color-scheme" content="dark">
     <meta name="description" content="Squicky Player - a privacy-first universal web media player.">
     <title>Squicky Player - Universal Private Playback</title>
-    <script type="module" crossorigin src="./assets/index-CGrBcqLS.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-JU5YNuC8.css">
+    <link rel="stylesheet" href="./themes.css">
+    <link rel="stylesheet" href="./enhanced-controls.css">
+    <link rel="stylesheet" href="./mobile-enhancements.css">
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -125,6 +127,11 @@
 
     <input id="fileInput" type="file" accept="video/*,audio/*,.m3u8,.mpd" multiple hidden>
     <input id="subtitleInput" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" hidden>
+
+    <script type="module" crossorigin src="./assets/index-CGrBcqLS.js"></script>
+    <script src="./theme-switcher.js"></script>
+    <script src="./enhanced-controls.js"></script>
+    <script src="./optimized-playback.js"></script>
 
     <dialog id="urlDialog">
       <form id="urlForm" method="dialog">
